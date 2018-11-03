@@ -1,4 +1,6 @@
 // Abhi's RREF for 2by3 matricies (augmented), that works for only positive entries
+// we can implement negative numbers in rref solver by multiplying row by negative 1
+// However, this means having to scan in and detect minus signs in OCR
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
