@@ -2,6 +2,8 @@
 // Robot will set motorSpeed according to sound sensor level detected
 
 // Tech Specs: https://shop.lego.com/en-US/Sound-Sensor-9845
+//http://www.legoengineering.com/nxt-sensors/
+
 //Simple Tutorial: http://cdn.robotc.net/pdfs/nxt/curriculum/Sensing%20-%20Speed%20Based%20Volume%20for%20LEGO.pdf
 task main()
 {
