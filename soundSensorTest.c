@@ -9,16 +9,16 @@ task main()
 {
 	const int SOUND_SENSOR = S1;
 	// configure sound sensors
-	SensorType[SOUND_SENSOR] = sensorEV3_Sound;
+	SensorType[SOUND_SENSOR] = sensorSoundDB;
+	// we used the automatic robotc thing to generate name of legacy nxt sensor
 	wait1Msec(50);
-	SensorMode[SOUND_SENSOR] = modeEV3Sound_SoundDB; // may not work
 	wait1Msec(50);
- 	
- 	ClearTimer(T1);
- 	while(time1[T1] < 10000) // runs for 10 seconds
+
+ 	clearTimer(T1);
+ 	while(time1[T1] < 60000) // runs for 60 seconds
  	{
 	 	motor[motorA] = SensorValue[SOUND_SENSOR]; // higher = louder
-	 	motor[motorD] = SensorValue[SOUND_SENSOR];
+	 	displayBigTextLine(6,"%d",SensorValue[SOUND_SENSOR] );
  	}
  	// make program output to text file to see range of sound sensorEV3_sound
  	// we need to make sure ambient sound doesn't accidentally switch it on
