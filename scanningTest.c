@@ -11,15 +11,69 @@ const int ANGLE_SPAN = 90; // range of the arm for the robot
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
 
-bool *Digit1[8][5];
-bool *Digit2[8][5];
-bool *Digit3[8][5];
-bool *Digit4[8][5];
-bool *Digit5[8][5];
-bool *Digit6[8][5];
+bool Digit1[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};
+bool Digit2[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};
+bool Digit3[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};;
+bool Digit4[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};
+bool Digit5[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};
+bool Digit6[9][5] = {
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0},
+						{0 0 0 0 0}	};
 
 float getSweepDistance(int angle){
-	// after modelling the data as 
+	// after modelling the data as
 	return 2.995578422*pow(10,-1)*angle + 8.444505466*pow(10, -1);
 }
 
@@ -38,7 +92,7 @@ void nextLine(){
 void goLeft(){
 	motor[SWEEPER]=-50;
 	nMotorEncoder[AXIAL]=0;
-	while(nMotorEncoder > (-1)*ANGLE_SPAN){}
+	while(nMotorEncoder[AXIAL] > (-1)*ANGLE_SPAN){}
 	motor[SWEEPER]=0;
 }
 
@@ -47,28 +101,28 @@ task main(){
 	wait1Msec(50);
 	SensorMode[COLOR_SENS]= modeEV3Color_Reflected;
 	wait1Msec(50);
-	
+
 // Assumption: the color sensor intensity will be boolean (>1 or 0)
-	for(int j=0; j < PX_HEIGHT; j++){
-		for(int i=0; i < PX_WIDTH; i++){
-			if(i<5 && j<=8){
-				Digit1[i][j]=SensorValue[COLOR_SENS];
+	for(int row=0; row < PX_HEIGHT; row++){
+		for(int column=0; column < PX_WIDTH; column++){
+			if(column<5 && row<=8){
+				Digit1[row][column]=SensorValue[COLOR_SENS];
 			}
-			else if(i>=5 && i<10 && j<=8){
-				Digit2[i][j]=SensorValue[COLOR_SENS];
+			else if(column>=5 && column<10 && row<=8){
+				Digit2[row][column]=SensorValue[COLOR_SENS];
 			}
-			else if(i>=10 && j<=8){
-				Digit3[i][j]=SensorValue[COLOR_SENS];
+			else if(column>=10 && row<=8){
+				Digit3[row][column]=SensorValue[COLOR_SENS];
 			}
 
-			else if(i<5 && j>12 && j<16){
-				Digit4[i][j]=SensorValue[COLOR_SENS];
+			else if(column<5 && row>12 && row<16){
+				Digit4[row][column]=SensorValue[COLOR_SENS];
 			}
-			else if(i>5 && i<=10 && j<16){
-				Digit5[i][j]=SensorValue[COLOR_SENS];
+			else if(column>5 && column<=10 && row<16){
+				Digit5[row][column]=SensorValue[COLOR_SENS];
 			}
-			else if(i>10 && j <=16){
-				Digit5[i][j]=SensorValue[COLOR_SENS];
+			else if(column>10 && row <=16){
+				Digit5[row][column]=SensorValue[COLOR_SENS];
 			}
 			nextPixel();
 		}
