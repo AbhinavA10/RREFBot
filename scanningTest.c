@@ -1,16 +1,22 @@
 const float DIST_CONV=180/(2.75*PI);
-const int AXIAL = motorD;
+
+const int AXIAL = motorB;
 const int SWEEPER = motorA;
+const int COLOR_SENS=S2;
+
 const float WIDTH = 1.5; // x distance between each pixel
+const float HEIGHT = 0.75;
 const int ANGLE_SPAN = 90; // range of the arm for the robot
 
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
 
-bool Digit1[8][5]={0};
-bool Digit2[8][5]={0};
-bool Digit3[8][5]={0};
-bool Digit4[8][5]={0};
+bool *Digit1[8][5];
+bool *Digit2[8][5];
+bool *Digit3[8][5];
+bool *Digit4[8][5];
+bool *Digit5[8][5];
+bool *Digit6[8][5];
 
 float getSweepDistance(int angle){
 	// after modelling the data as 
@@ -45,13 +51,13 @@ task main(){
 // Assumption: the color sensor intensity will be boolean (>1 or 0)
 	for(int j=0; j < PX_HEIGHT; j++){
 		for(int i=0; i < PX_WIDTH; i++){
-			if(i<5 && j<8){
+			if(i<5 && j<=8){
 				Digit1[i][j]=SensorValue[COLOR_SENS];
 			}
-			else if(i>5 && i<=10 && j<8){
+			else if(i>=5 && i<10 && j<=8){
 				Digit2[i][j]=SensorValue[COLOR_SENS];
 			}
-			else if(i>10 && j<=8){
+			else if(i>=10 && j<=8){
 				Digit3[i][j]=SensorValue[COLOR_SENS];
 			}
 
