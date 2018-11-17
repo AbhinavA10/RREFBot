@@ -8,7 +8,7 @@ bool libraryMatrix[9][5];
 int errorList[10];
 
 // returns number of differences between two matrices
-int compareMatrix(bool scan[9][5], bool control[9][5]){
+int compareMatrix(){
 	int errorCount=0;
 	for(int i=0; i<9; i++){
 		for(int j=0; j<5; j++){
@@ -20,6 +20,40 @@ int compareMatrix(bool scan[9][5], bool control[9][5]){
 	return errorCount;
 }
 
+task main(){
+	TFileHandle fin;
+	bool fileOkay=openReadPC(fin,"fileRead.txt");
+
+	// for every number represented in text file
+	for(int number=0; number<10){
+		// populates an array using text file 
+		for(int i=0; i<9; i++){
+			for(int j=0; j<5; j++){
+				readIntPC(fin, value);
+				libraryMatrix[i][j] = value;
+			}
+		}
+		// fill a list with number of errors between each matrix
+		errorList[number] = compareMatrix(digit[9][5], matrix[9][5]);
+	}
+	
+	int smallestError=45;
+	int bestEstimate=0;
+	for(int index=0; index<9; index++){
+		if(errorList[index] < smallestError){
+			smallesError = errorList[index];
+			bestEstimate = index;
+		}
+	}
+	
+
+	//display string bestEstimate
+	
+
+}
+
+
+/*
 int estimateDigit(bool matrix[9][5]){
 	// for every number represented in text file
 	for(int number=0; number<10){
@@ -44,13 +78,4 @@ int estimateDigit(bool matrix[9][5]){
 	}
 	return bestEstimate;
 }
-
-task main(){
-	TFileHandle fin;
-	bool fileOkay=openReadPC(fin,"fileRead.txt");
-	int value=0;
-	int digit=0;
-	digit = estimateDigit(libraryMatrix[9][5]);
-	printf("%i\n", digit);
-}
-
+*/
