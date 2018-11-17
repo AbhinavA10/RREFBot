@@ -11,19 +11,12 @@ const int ANGLE_SPAN = 90; // range of the arm for the robot
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
 
-bool *Digit1;
-bool *Digit2;
-bool *Digit3;
-bool *Digit4;
-bool *Digit5;
-bool *Digit6;
-
-Digit1 = new bool[8][5];
-Digit2 = new bool[8][5];
-Digit3 = new bool[8][5];
-Digit4 = new bool[8][5];
-Digit5 = new bool[8][5];
-Digit6 = new bool[8][5];
+bool *Digit1[8][5];
+bool *Digit2[8][5];
+bool *Digit3[8][5];
+bool *Digit4[8][5];
+bool *Digit5[8][5];
+bool *Digit6[8][5];
 
 float getSweepDistance(int angle){
 	// after modelling the data as 
