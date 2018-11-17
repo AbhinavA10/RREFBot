@@ -89,8 +89,8 @@ void reduceSecondEntries(int ASystem[2][3]){
 int main(){
 
 	int A[2][3] = {
-					{5,3,1},
-					{2,3,2},
+					{1,1,5},
+					 {2,1,7},
 					}; // gives 5,0 b/c ints
 	// sample excersises below: http://tutorial.math.lamar.edu/Classes/Alg/AugmentedMatrix.aspx
 	/* TEST CASES (that wont work), bc negative numbers
