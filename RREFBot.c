@@ -10,7 +10,7 @@ float getWheelDistFromEncCount(double count){
 	return count / (180.0/(WHEEL_RADIUS*PI));
 }
 void outputMatrix(){
-	int lineNum =0;
+	int lineNum = 0;
 	for (int i=0;i<8; i++){
 		displayBigTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", A[i][0], A[i][1], A[i][2], A[i][3] A[i][4]);
 		lineNum+=3;

@@ -12,73 +12,76 @@ const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
 
 bool Digit1[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 bool Digit2[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 bool Digit3[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};;
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 bool Digit4[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 bool Digit5[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 bool Digit6[9][5] = {
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0},
-						{0 0 0 0 0}	};
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0}	};
 
 float getSweepDistance(int angle){
 	// after modelling the data as
-	return 2.995578422*pow(10,-1)*angle + 8.444505466*pow(10, -1);
+	return (2.995578422*0.1*angle + 8.444505466*0.1);
+}
+int getAngleToMove(int distance){
+    return (int)(distance - 8.444505466*0.1)/(2.995578422*0.1);
 }
 
 void nextPixel(){
-	motor[SWEEPER]=30;
+	motor[SWEEPER]=70;
 	nMotorEncoder[SWEEPER]=0;
 	while(getSweepDistance(nMotorEncoder[SWEEPER]) < WIDTH){}
 	motor[SWEEPER]=0;
@@ -95,37 +98,52 @@ void goLeft(){
 	while(nMotorEncoder[AXIAL] > (-1)*ANGLE_SPAN){}
 	motor[SWEEPER]=0;
 }
-
+void outputMatrix(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0], Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+}
 task main(){
 	SensorType[COLOR_SENS]= sensorEV3_Color;
 	wait1Msec(50);
 	SensorMode[COLOR_SENS]= modeEV3Color_Reflected;
 	wait1Msec(50);
-
-// Assumption: the color sensor intensity will be boolean (>1 or 0)
+	bool isBlack=false;
 	for(int row=0; row < PX_HEIGHT; row++){
 		for(int column=0; column < PX_WIDTH; column++){
-			if(column<5 && row<=8){
-				Digit1[row][column]=SensorValue[COLOR_SENS];
+			isBlack = false;
+			if (SensorValue[COLOR_SENS] < 30)
+				isBlack = true;
+			if (row<9){
+				if(column<5){
+					Digit1[row][column]=isBlack;
+				}
+				else if(column>=5 && column<10){
+					Digit2[row][column-5]=isBlack;
+				}
+				else if(column>=10){
+					Digit3[row][column-10]=isBlack;
+				}
 			}
-			else if(column>=5 && column<10 && row<=8){
-				Digit2[row][column]=SensorValue[COLOR_SENS];
+			else if (row>11){
+				if(column<5){
+					Digit4[row][column]=isBlack;
+				}
+				if(column>=5 && column<10){
+					Digit5[row][column-5]=isBlack;
+				}
+				if(column>=10){
+					Digit6[row][column-10]=isBlack;
+				}
 			}
-			else if(column>=10 && row<=8){
-				Digit3[row][column]=SensorValue[COLOR_SENS];
-			}
-
-			else if(column<5 && row>12 && row<16){
-				Digit4[row][column]=SensorValue[COLOR_SENS];
-			}
-			else if(column>5 && column<=10 && row<16){
-				Digit5[row][column]=SensorValue[COLOR_SENS];
-			}
-			else if(column>10 && row <=16){
-				Digit5[row][column]=SensorValue[COLOR_SENS];
-			}
-			nextPixel();
+			nextPixel(); // horizontal
+			wait1Msec(1000);
 		}
 		nextLine();
+		wait1Msec(1000);
 	}
+	outputMatrix();
 }
