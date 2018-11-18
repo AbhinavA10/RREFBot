@@ -1,10 +1,12 @@
 const int BACK_WHEELS = motorB;
-const int SWEEPER = motorA;
+const int MOTOR_BELT = motorA;
 const int COLOR_SENS=S2;
 const float WHEEL_RADIUS = 2.75
+const float BELT_PULLY_RADIUS = 1.5;
 
 const float WIDTH = 1.5; // x distance between each pixel
 const float HEIGHT = 0.75;
+const int ANGLE_SPAN = 90; // range of the arm for the robot
 
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
@@ -77,20 +79,23 @@ float getWheelDistFromEncCount(double count){
 	return count / (180.0/(WHEEL_RADIUS*PI));
 }
 
-
-void nextPixelRight(){
-	motor[SWEEPER]=70;
-	nMotorEncoder[SWEEPER]=0;
-	// insert function too convert wheel rope to linear distance
-	motor[SWEEPER]=0;
+float getBeltDistFromEncCount(double count){
+	return count / (180.0/(BELT_PULLY_RADIUS*PI));
 }
-void nextPixelLeft(){
-	motor[SWEEPER]=-70;
-	nMotorEncoder[SWEEPER]=0;
-	// range of angle thing
-	//goes from 0.844 to 1.5
-	while(getSweepDistance(nMotorEncoder[SWEEPER]) > 0.844-1.5){}
-	motor[SWEEPER]=0;
+
+
+void goFullyLeft(){
+	motor[MOTOR_BELT]=50;
+	nMotorEncoder[MOTOR_BELT]=0;
+	while(getBeltDistFromEncCount(nMotorEncoder[MOTOR_BELT]) < 23){}
+	motor[MOTOR_BELT]=0;
+}
+void nextPixelRight(){
+	// assuming starting at left side, move sensor one unit right (1.5)
+	motor[MOTOR_BELT]=-70;
+	nMotorEncoder[MOTOR_BELT]=0;
+	while(abs(getBeltDistFromEncCount(nMotorEncoder[MOTOR_BELT])) < WIDTH){}
+	motor[MOTOR_BELT]=0;
 }
 void moveRobotDown(int distanceDown, bool down){
 	nMotorEncoder[BACK_WHEELS] = 0;
@@ -107,13 +112,6 @@ void moveRobotDown(int distanceDown, bool down){
 		while(nMotorEncoder[BACK_WHEELS]>=((getEncCountFromWheelDist(distanceDown)))*-1){}
 		motor[BACK_WHEELS] = 0;
 	}
-}
-
-void goLeft(){
-	motor[SWEEPER]=-50;
-	nMotorEncoder[SWEEPER]=0;
-	while(nMotorEncoder[SWEEPER] > (-1)*ANGLE_SPAN){}
-	motor[SWEEPER]=0;
 }
 void outputMatrix(){
 	int lineNum =0;
@@ -156,11 +154,11 @@ task main(){
 					Digit6[row][column-10]=isBlack;
 				}
 			}
-			//nextPixelRight(); // horizontal
 
-			nextPixelLeft(); // horizontal
+			nextPixelRight(); // horizontal
 			wait1Msec(1000);
 		}
+		goFullyLeft();
 		moveRobotDown(HEIGHT, 1);
 		wait1Msec(1000);
 	}

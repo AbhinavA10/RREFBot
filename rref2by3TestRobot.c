@@ -74,8 +74,7 @@ void reduceSecondEntries(){
 		subtract2rows(Augmented[0][1],0,1);
 	}
 }
-// ==================================== MAIN ===================
-task main(){
+void computeMatrix(){
 	while (Augmented[0][0]!=1 || Augmented[1][0]!=0 || Augmented[0][1]!=0 || Augmented[1][1]!=1){ // while not in rref
 		if (Augmented[0][0]!=1 || Augmented[1][0]!=0){
 			reduceFirstEntries();}
@@ -87,4 +86,9 @@ task main(){
 	}
 	outputMatrix();
 	wait1Msec(4000);
+}
+
+// ==================================== MAIN ===================
+task main(){
+	computeMatrix();
 }
