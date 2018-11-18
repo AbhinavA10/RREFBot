@@ -2,10 +2,10 @@
 
 // in a 2d array, first [] is rows, second [] is coloumns
 int Augmented[2][3] = {
-				{1,1,5},
-				{2,1,7}
+				{1,1,6},
+				{1,2,9}
 				};
-// Should give [2 3]T -- and it does
+// will give [3 3]T -- as expected
 // ==================================== OUTPUT MATRIX ===================
 void outputMatrix(){
 	int lineNum =0;
