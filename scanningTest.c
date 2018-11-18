@@ -1,15 +1,14 @@
-const int BACK_WHEELS = motorB;
-const int MOTOR_BELT = motorA;
+const int AXIAL_CONVERSION = 180/(2.75*PI);
+const float SWEEP_CONVERSION = 180/(0.575*PI);
+
+const float HEIGHT = 1;
+const float WIDTH = 0.5;
+const int ROW_NUM=9;
+const int COL_NUM=5;
+
+const int AXIAL = motorB;
+const int SWEEPER = motorA;
 const int COLOR_SENS=S2;
-const float WHEEL_RADIUS = 2.75
-const float BELT_PULLY_RADIUS = 0.575; // diameter was 1.15 cm
-
-const float WIDTH = 1.5; // x distance between each pixel
-const float HEIGHT = 0.75;
-const int ANGLE_SPAN = 90; // range of the arm for the robot
-
-const int PX_WIDTH=15;
-const int PX_HEIGHT=20;
 
 bool Digit1[9][5] = {
 						{0, 0, 0, 0, 0},
@@ -72,97 +71,72 @@ bool Digit6[9][5] = {
 						{0, 0, 0, 0, 0},
 						{0, 0, 0, 0, 0}	};
 
-float getEncCountForWheelDist(float distance){
-	return distance * (180.0/(WHEEL_RADIUS*PI));
+void nextPixel(){
+	motor[SWEEPER]=-30;
+	nMotorEncoder[SWEEPER]=0;
+	// POSSIBLE ERROR: check that the conversion below is correct
+	while(nMotorEncoder[SWEEPER]/SWEEP_CONVERSION >= (-1)*WIDTH){}
+	motor[SWEEPER]=0;
 }
-float getWheelDistFromEncCount(double count){
-	return count / (180.0/(WHEEL_RADIUS*PI));
+void nextLine(){
+	motor[AXIAL]=30;
+	nMotorEncoder[AXIAL]=0;
+	while(nMotorEncoder[AXIAL]/AXIAL_CONVERSION <= HEIGHT){}
+	motor[AXIAL]=0;
 }
 
-float getBeltDistFromEncCount(double count){
-	return count / (180.0/(BELT_PULLY_RADIUS*PI));
-}
-float getEncCountForBeltDistance(double distance){
-	return distance * (180.0/(BELT_PULLY_RADIUS*PI));
+
+void goLeft(){
+	motor[SWEEPER]=50;
+	nMotorEncoder[AXIAL]=0;
+	while(nMotorEncoder[SWEEPER] < 15*WIDTH*SWEEP_CONVERSION){}
+	motor[SWEEPER]=0;
 }
 
-void goFullyLeft(){
-	motor[MOTOR_BELT]=50;
-	nMotorEncoder[MOTOR_BELT]=0;
-	while(nMotorEncoder[MOTOR_BELT] < getEncCountForBeltDistance(23)){}
-	motor[MOTOR_BELT]=0;
-}
-void nextPixelRight(){
-	// assuming starting at left side, move sensor one unit right (1.5)
-	motor[MOTOR_BELT]=-70;
-	nMotorEncoder[MOTOR_BELT]=0;
-	while(nMotorEncoder[MOTOR_BELT]>=-getEncCountForBeltDistance(WIDTH)){} // this might be wrong
-	motor[MOTOR_BELT]=0;
-}
-void moveRobotDown(int distanceDown, bool down){
-	nMotorEncoder[BACK_WHEELS] = 0;
-	if(down){
-		motor[BACK_WHEELS] = 10;
-		// moves down for specified distance
-		while(nMotorEncoder[BACK_WHEELS]<=(getEncCountFromWheelDist(distanceDown))){}
-		motor[BACK_WHEELS] = 0;
-	}
-		// moving up
-	else{
-		motor[BACK_WHEELS] = -10;
-		// moves down for specified distance
-		while(nMotorEncoder[BACK_WHEELS]>=((getEncCountFromWheelDist(distanceDown)))*-1){}
-		motor[BACK_WHEELS] = 0;
-	}
-}
-void outputMatrix(){
-	int lineNum =0;
-	for (int i=0;i<9; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0], Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
-		lineNum++;
-	}
-	wait1Msec(5000);
-}
-task main(){
-	SensorType[COLOR_SENS]= sensorEV3_Color;
-	wait1Msec(50);
-	SensorMode[COLOR_SENS]= modeEV3Color_Reflected;
-	wait1Msec(50);
-	bool isBlack=false;
-	for(int row=0; row < PX_HEIGHT; row++){
-		for(int column=0; column < PX_WIDTH; column++){
-			isBlack = false;
-			if (SensorValue[COLOR_SENS] < 30)
-				isBlack = true;
-			if (row<9){
-				if(column<5){
-					Digit1[row][column]=isBlack;
-				}
-				else if(column>=5 && column<10){
-					Digit2[row][column-5]=isBlack;
-				}
-				else if(column>=10){
-					Digit3[row][column-10]=isBlack;
-				}
-			}
-			else if (row>11){
-				if(column<5){
-					Digit4[row][column]=isBlack;
-				}
-				if(column>=5 && column<10){
-					Digit5[row][column-5]=isBlack;
-				}
-				if(column>=10){
-					Digit6[row][column-10]=isBlack;
-				}
-			}
+task main()
+{
+	SensorType[COLOR_SENS] = sensorEV3_Color;
+	wait1Msec(10);
+	SensorMode[COLOR_SENS] = modeEV3Color_Reflected;
+	wait1Msec(10);
 
-			nextPixelRight(); // horizontal
-			wait1Msec(1000);
+	bool scan = 0;
+
+	for(int row=0; row < 20; row++){
+		for(int col=0; col < 15; col++){
+			// determine black or white
+			if(SensorValue[COLOR_SENS] > 30)
+				scan = 0;
+			else
+				scan = 1;
+
+			// store in first digit
+			if(col<5 && row<9)
+				Digit1[row][col]=scan;
+			// store in second digit
+			else if(col>=5 && col<10 && row<9)
+				Digit2[row][col-5]=scan;
+			// store in third digit
+			else if(col>=10 && row<9)
+				Digit3[row][col-10]=scan;
+			// store in 4th digit
+			else if(col<5 && row>11)
+				Digit4[row-12][col]=scan;
+			// 5th
+			else if(col>=5 && col<10 && row>11)
+				Digit5[row-12][col-5]=scan;
+			// 6th
+			else
+				Digit6[row-12][col-10]=scan;
+
+			nextPixel();
+			wait1Msec(500);
 		}
-		goFullyLeft();
-		moveRobotDown(HEIGHT, 1);
+
+		goLeft();
+		nextLine();
 		wait1Msec(1000);
 	}
-	outputMatrix();
+	DisplayString(2, "%d", Digit1[0][0]);
+	wait1Msec(2000);
 }

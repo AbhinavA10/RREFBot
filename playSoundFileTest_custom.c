@@ -6,13 +6,15 @@
 //https://www.ev3dev.org/docs/tutorials/using-ev3-speaker/
 //https://stackoverflow.com/questions/32710483/robotc-upload-sound-file-to-ev3
 void checkSoundFile(){
-	bool bExists = bEv3FileExists("/home/root/lms2012/prjs/rc-data/customTest2.rsf");
+	bool bExists = bEv3FileExists("/home/root/lms2012/prjs/rc-data/abhi.rsf");
+	//abhi.rsf
 	if(bExists)
 		drawBmpfile(0, 127, "Thumbs up");
 	else
 		drawBmpfile(0, 127, "Thumbs down");
 	while (!bSoundQueueAvailable){}
-	playSoundFile("/home/root/lms2012/prjs/rc-data/customTest2.rsf");
+	playSoundFile("/home/root/lms2012/prjs/rc-data/abhi.rsf");
+	//abhi.rsf
 }
 task main()
 {
