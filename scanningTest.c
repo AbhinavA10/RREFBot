@@ -5,7 +5,6 @@ const float WHEEL_RADIUS = 2.75
 
 const float WIDTH = 1.5; // x distance between each pixel
 const float HEIGHT = 0.75;
-const int ANGLE_SPAN = 90; // range of the arm for the robot
 
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
