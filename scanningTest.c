@@ -1,8 +1,8 @@
 const int AXIAL_CONVERSION = 180/(2.75*PI);
 const float SWEEP_CONVERSION = 180/(0.575*PI);
 
-const float HEIGHT = 1;
-const float WIDTH = 0.5;
+const float HEIGHT = 1.1;
+const float WIDTH = 1.1;
 const int ROW_NUM=9;
 const int COL_NUM=5;
 
@@ -71,14 +71,13 @@ bool Digit6[9][5] = {
 						{0, 0, 0, 0, 0},
 						{0, 0, 0, 0, 0}	};
 
-void nextPixel(){
+void nextPixelRight(){
 	motor[SWEEPER]=-30;
 	nMotorEncoder[SWEEPER]=0;
-	// POSSIBLE ERROR: check that the conversion below is correct
 	while(nMotorEncoder[SWEEPER]/SWEEP_CONVERSION >= (-1)*WIDTH){}
 	motor[SWEEPER]=0;
 }
-void nextLine(){
+void nextLineDown(){
 	motor[AXIAL]=30;
 	nMotorEncoder[AXIAL]=0;
 	while(nMotorEncoder[AXIAL]/AXIAL_CONVERSION <= HEIGHT){}
@@ -86,7 +85,7 @@ void nextLine(){
 }
 
 
-void goLeft(){
+void goFullyLeft(){
 	motor[SWEEPER]=50;
 	nMotorEncoder[AXIAL]=0;
 	while(nMotorEncoder[SWEEPER] < 15*WIDTH*SWEEP_CONVERSION){}
@@ -129,12 +128,12 @@ task main()
 			else
 				Digit6[row-12][col-10]=scan;
 
-			nextPixel();
+			nextPixelRight();
 			wait1Msec(500);
 		}
 
-		goLeft();
-		nextLine();
+		goFullyLeft();
+		nextLineDown();
 		wait1Msec(1000);
 	}
 	DisplayString(2, "%d", Digit1[0][0]);

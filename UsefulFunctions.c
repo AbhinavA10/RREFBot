@@ -11,33 +11,6 @@ const int ANGLE_SPAN = 90; // range of the arm for the robot
 const int PX_WIDTH=15;
 const int PX_HEIGHT=20;
 
-float getEncCountForWheelDist(float distance){
-	return distance * (180.0/(WHEEL_RADIUS*PI));
-}
-float getWheelDistFromEncCount(double count){
-	return count / (180.0/(WHEEL_RADIUS*PI));
-}
-
-float getBeltDistFromEncCount(double count){
-	return count / (180.0/(BELT_PULLY_RADIUS*PI));
-}
-float getEncCountForBeltDistance(double distance){
-	return distance * (180.0/(BELT_PULLY_RADIUS*PI));
-}
-
-void goFullyLeft(){
-	motor[MOTOR_BELT]=50;
-	nMotorEncoder[MOTOR_BELT]=0;
-	while(nMotorEncoder[MOTOR_BELT] < getEncCountForBeltDistance(23)){}
-	motor[MOTOR_BELT]=0;
-}
-void nextPixelRight(){
-	// assuming starting at left side, move sensor one unit right (1.5)
-	motor[MOTOR_BELT]=-70;
-	nMotorEncoder[MOTOR_BELT]=0;
-	while(nMotorEncoder[MOTOR_BELT]>=-getEncCountForBeltDistance(WIDTH)){} // this might be wrong
-	motor[MOTOR_BELT]=0;
-}
 void moveRobotDown(int distanceDown, bool down){
 	nMotorEncoder[BACK_WHEELS] = 0;
 	if(down){
