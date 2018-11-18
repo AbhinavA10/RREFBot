@@ -74,16 +74,24 @@ bool Digit6[9][5] = {
 
 float getSweepDistance(int angle){
 	// after modelling the data as
-	return (2.995578422*0.1*angle + 8.444505466*0.1);
-}
-int getAngleToMove(int distance){
-    return (int)(distance - 8.444505466*0.1)/(2.995578422*0.1);
+	return (0.2995578422*angle+ 0.844450546);
 }
 
-void nextPixel(){
+void nextPixelRight(){
 	motor[SWEEPER]=70;
 	nMotorEncoder[SWEEPER]=0;
-	while(getSweepDistance(nMotorEncoder[SWEEPER]) < WIDTH){}
+	// range of angle thing 
+	//goes from 0.844 to 1.5
+	// each 5 degrees moves it 1.5cm
+	while(getSweepDistance(nMotorEncoder[SWEEPER]) < 1.5+0.844){}
+	motor[SWEEPER]=0;
+}
+void nextPixelLeft(){
+	motor[SWEEPER]=-70;
+	nMotorEncoder[SWEEPER]=0;
+	// range of angle thing 
+	//goes from 0.844 to 1.5
+	while(getSweepDistance(nMotorEncoder[SWEEPER]) > 0.844-1.5){}
 	motor[SWEEPER]=0;
 }
 void nextLine(){
@@ -139,7 +147,9 @@ task main(){
 					Digit6[row][column-10]=isBlack;
 				}
 			}
-			nextPixel(); // horizontal
+			nextPixelRight(); // horizontal
+
+			//nextPixelLeft(); // horizontal
 			wait1Msec(1000);
 		}
 		nextLine();
