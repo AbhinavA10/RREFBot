@@ -2,7 +2,7 @@ const int BACK_WHEELS = motorB;
 const int MOTOR_BELT = motorA;
 const int COLOR_SENS=S2;
 const float WHEEL_RADIUS = 2.75
-const float BELT_PULLY_RADIUS = 1.5;
+const float BELT_PULLY_RADIUS = 0.575; // diameter was 1.15 cm
 
 const float WIDTH = 1.5; // x distance between each pixel
 const float HEIGHT = 0.75;
@@ -72,7 +72,7 @@ bool Digit6[9][5] = {
 						{0, 0, 0, 0, 0},
 						{0, 0, 0, 0, 0}	};
 
-float getEncCountFromWheelDist(float distance){
+float getEncCountForWheelDist(float distance){
 	return distance * (180.0/(WHEEL_RADIUS*PI));
 }
 float getWheelDistFromEncCount(double count){
@@ -82,19 +82,21 @@ float getWheelDistFromEncCount(double count){
 float getBeltDistFromEncCount(double count){
 	return count / (180.0/(BELT_PULLY_RADIUS*PI));
 }
-
+float getEncCountForBeltDistance(double distance){
+	return distance * (180.0/(BELT_PULLY_RADIUS*PI));
+}
 
 void goFullyLeft(){
 	motor[MOTOR_BELT]=50;
 	nMotorEncoder[MOTOR_BELT]=0;
-	while(getBeltDistFromEncCount(nMotorEncoder[MOTOR_BELT]) < 23){}
+	while(nMotorEncoder[MOTOR_BELT] < getEncCountForBeltDistance(23)){}
 	motor[MOTOR_BELT]=0;
 }
 void nextPixelRight(){
 	// assuming starting at left side, move sensor one unit right (1.5)
 	motor[MOTOR_BELT]=-70;
 	nMotorEncoder[MOTOR_BELT]=0;
-	while(abs(getBeltDistFromEncCount(nMotorEncoder[MOTOR_BELT])) < WIDTH){}
+	while(nMotorEncoder[MOTOR_BELT]>=-getEncCountForBeltDistance(WIDTH)){} // this might be wrong
 	motor[MOTOR_BELT]=0;
 }
 void moveRobotDown(int distanceDown, bool down){
