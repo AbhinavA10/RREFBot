@@ -1,3 +1,6 @@
+// TO DO _____ add check for inconsistency
+
+
 // Abhi's RREF for 2by3 matricies (augmented), that works for only positive entries
 
 // in a 2d array, first [] is rows, second [] is coloumns
@@ -75,6 +78,12 @@ void reduceSecondEntries(){
 	}
 }
 void computeMatrix(){
+	// add check for inconsistency
+	/*
+if ( (Augmented[0][0] == 0 && Augmented[1][0] == 0 ) || (Augmented[0][1] == 0 && Augmented[1][1] == 0 ) ){
+	cout <<"Error: system incosistent" << endl;
+}
+	*/
 	while (Augmented[0][0]!=1 || Augmented[1][0]!=0 || Augmented[0][1]!=0 || Augmented[1][1]!=1){ // while not in rref
 		if (Augmented[0][0]!=1 || Augmented[1][0]!=0){
 			reduceFirstEntries();}
