@@ -1,13 +1,13 @@
 const int AXIAL_CONVERSION = 180/(2.75*PI);
-const float SWEEP_CONVERSION = 180/(0.575*PI);
+const float SWEEP_CONVERSION = 180/(0.725*PI);
 
 const float HEIGHT = 1.1;
 const float WIDTH = 1.1;
 const int ROW_NUM=9;
 const int COL_NUM=5;
 
-const int AXIAL = motorB;
-const int SWEEPER = motorA;
+const int AXIAL = motorC;
+const int SWEEPER = motorB;
 const int COLOR_SENS=S2;
 
 bool Digit1[9][5] = {
@@ -74,7 +74,7 @@ bool Digit6[9][5] = {
 void nextPixelRight(){
 	motor[SWEEPER]=-30;
 	nMotorEncoder[SWEEPER]=0;
-	while(nMotorEncoder[SWEEPER]/SWEEP_CONVERSION >= (-1)*WIDTH){}
+	while(nMotorEncoder[SWEEPER] >= (-1)*WIDTH*SWEEP_CONVERSION){}
 	motor[SWEEPER]=0;
 }
 void nextLineDown(){
@@ -91,7 +91,14 @@ void goFullyLeft(){
 	while(nMotorEncoder[SWEEPER] < 15*WIDTH*SWEEP_CONVERSION){}
 	motor[SWEEPER]=0;
 }
-
+void outputMatrix(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0], Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+}
 task main()
 {
 	SensorType[COLOR_SENS] = sensorEV3_Color;
@@ -136,6 +143,6 @@ task main()
 		nextLineDown();
 		wait1Msec(1000);
 	}
-	DisplayString(2, "%d", Digit1[0][0]);
+	outputMatrx();
 	wait1Msec(2000);
 }

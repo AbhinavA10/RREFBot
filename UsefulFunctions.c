@@ -16,14 +16,14 @@ void moveRobotDown(int distanceDown, bool down){
 	if(down){
 		motor[BACK_WHEELS] = 10;
 		// moves down for specified distance
-		while(nMotorEncoder[BACK_WHEELS]<=(getEncCountFromWheelDist(distanceDown))){}
+		while(nMotorEncoder[BACK_WHEELS]/AXIAL_CONVERSION <= distanceDown){}
 		motor[BACK_WHEELS] = 0;
 	}
 		// moving up
 	else{
 		motor[BACK_WHEELS] = -10;
-		// moves down for specified distance
-		while(nMotorEncoder[BACK_WHEELS]>=((getEncCountFromWheelDist(distanceDown)))*-1){}
+		// moves up for specified distance
+		while(nMotorEncoder[BACK_WHEELS]/AXIAL_CONVERSION >=distanceDown*(-1)){}
 		motor[BACK_WHEELS] = 0;
 	}
 }
