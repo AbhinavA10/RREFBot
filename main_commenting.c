@@ -1,4 +1,7 @@
 // TODO: initialize arrays
+
+// SOURCES:
+// http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm - for sound
 #include "PC_FileIO.c"
 
 bool Digit1[9][5];
@@ -24,7 +27,7 @@ bool libraryMatrix[9][5];
 void nextPixelRight();
 void nextLineDown();
 void goFullyLeft();
-void outputMatrix();
+void output2By3Matrix();
 // ======================== DIGIT RECOGNITION TESTS ===========================
 int compareMatrix1();
 int compareMatrix2();
@@ -74,6 +77,8 @@ task main()
 	const int COL_NUM=5; // number of columns in 1 section of the printed matrix
 	// Note: the printed matrix is split up into 6 different sections
 	// one for each digit
+	const int ROW_NUM_TOTAL = 20;
+	const int COL_NUM_TOTAL = 15;
 	const int MOTOR_PEN = motorA;
 	const int MOTOR_AXIAL = motorC;
 	const int MOTOR_BELT = motorB;
@@ -141,7 +146,7 @@ task main()
 				nextPixelRight(); // move colour sensor right on track to
 				// the next cell
 				wait1Msec(50);
-				// the 14th coloumn doesn't scan unless the line below exists
+				// the 14th coloumn doesn't scan unless the lines below exists
 				if (col == 14){
 					if(SensorValue[COLOR_SENS] <10){
 						 isBlack = 1;
@@ -181,64 +186,54 @@ task main()
 			errorList6[number] = compareMatrix6();
 		}
 
-		// 1rd digit estimation
-		int smallestError1=45;
-		int bestEstimate1=0;
-		int smallestError2=45;
-		int bestEstimate2=0;
-		int smallestError3=45;
-		int bestEstimate3=0;
-		int smallestError4=45;
-		int bestEstimate4=0;
-		int smallestError5=45;
-		int bestEstimate5=0;
-		int smallestError6=45;
-		int bestEstimate6=0;
-
+		// digit estimation
+		int smallestError[6] = {45,45,45,45,45,45};
 		for(int index=0; index<9; index++){
-			if(errorList1[index] < smallestError1){
-				smallestError1 = errorList1[index];
+			if(errorList1[index] < smallestError[0]){
+				smallestError[0] = errorList1[index];
 				matrix[0][0] = index;
 			}
-			if(errorList2[index] < smallestError2){
-				smallestError2 = errorList2[index];
+			if(errorList2[index] < smallestError[1]){
+				smallestError[1] = errorList2[index];
 				matrix[0][1] = index;
 			}
-			if(errorList3[index] < smallestError3){
-				smallestError3 = errorList3[index];
+			if(errorList3[index] < smallestError[2]){
+				smallestError[2] = errorList3[index];
 				matrix[0][2] = index;
 			}
-			if(errorList4[index] < smallestError4){
-				smallestError4 = errorList4[index];
+			if(errorList4[index] < smallestError[3]){
+				smallestError[3] = errorList4[index];
 				matrix[1][0] = index;
 			}
-			if(errorList5[index] < smallestError5){
-				smallestError5 = errorList5[index];
+			if(errorList5[index] < smallestError[4]){
+				smallestError[4] = errorList5[index];
 				matrix[1][1] = index;
 			}
-			if(errorList6[index] < smallestError6){
-				smallestError6 = errorList6[index];
+			if(errorList6[index] < smallestError[5]){
+				smallestError[5] = errorList6[index];
 				matrix[1][2] = index;
 			}
 		}
-		outputMatrix();
+		//outputing the recognized matrix
+		output2By3Matrix();
 		wait1Msec(15000);
 		eraseDisplay();
-		computeMatrix();
+		computeMatrix(); // taking the matrix to rref 
 		eraseDisplay();
-		outputMatrix();
+		output2By3Matrix();
 		wait1Msec(15000);
 		for (int index = 0; index < 2; index++){
 			for (int count = 0; count < 3; count++){
 				if (matrix[index][count] >= 10){
 					int sum = matrix[index][count] - 10;
 					matrix[index][count] -= sum+1;
-					// this is only in case our scan doesn't have a positive solution
+					// this is only in case our scan doesn't have a single digit solution
 					// i.e. if it scans improperly
 				}
 				if (matrix[index][count] < 0){
 					matrix[index][count] *= -1 ; 
 					// output something in case we didn't get a positive solution
+					// as we are not able to output negative signs
 					// this is only in case our scan doesn't have a positive solution
 				}
 			}
@@ -246,6 +241,7 @@ task main()
 		writeSolvedMatrix();
 	}
 	else{ // if the user didn't yell for 2 seconds.
+		//http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
 		setSoundVolume(75);	//Sets the sound volume of the EV3 speaker to 75
 		playSound(soundDownwardTones);
 		// Starts playing a soundfile, 'soundDownwardTones.rsf' on the EV3
@@ -277,6 +273,10 @@ void goFullyLeft(){
 	motor[MOTOR_BELT]=0;
 }
 // ============================ COMPARE MATRIX 1 =============================
+/* We need to have these functions below because we can't pass 2D arrays 
+as paramters in RobotC. Otherwise, we would have passed (int digit [9][5], int libraryMatrix[9][5]) and
+compared it by reference.
+*/
 int compareMatrix1(){
 	int errorCount=0;
 	for(int i=0; i<9; i++){
@@ -349,7 +349,7 @@ int compareMatrix6(){
 	return errorCount;
 }
 // ============================ OUTPUT MATRIX ===============================
-void outputMatrix(){
+void output2By3Matrix(){
 	int lineNum =0;
 	for (int i=0;i<2; i++){
 		displayBigTextLine(lineNum, "   %d  %d  | %d  ", matrix[i][0],
@@ -687,7 +687,7 @@ void computeMatrix(){
 		else{ // at this point, the first coloumn is proper
 			reduceSecondEntries();
 		}
-		outputMatrix();
+		output2By3Matrix();
 		wait1Msec(500);
 	}
 	if ( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1][1] == 0 )){
@@ -698,6 +698,6 @@ void computeMatrix(){
 		sleep(3000);
 		displayBigTextLine(1,"Matrix is inconsistent");
 	}
-	outputMatrix();
+	output2By3Matrix();
 	wait1Msec(4000);
 }
