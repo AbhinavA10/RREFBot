@@ -1,25 +1,90 @@
-// TODO: initialize arrays
-
-// SOURCES:
-// http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm - for sound
+// TODO: write code to show everything but scanning working perfectly - just comment out the scan portion
+/*SOURCES:
+For sound: http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/
+LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
+*/
 #include "PC_FileIO.c"
+// ============================= INITILIZE ARRAYS ============================
+bool Digit1[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
+bool Digit2[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
+bool Digit3[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
+bool Digit4[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
+bool Digit5[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
+bool Digit6[9][5] = {
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0},
+					{0, 0, 0, 0, 0}	};
 
-bool Digit1[9][5];
-bool Digit2[9][5];
-bool Digit3[9][5];
-bool Digit4[9][5];
-bool Digit5[9][5];
-bool Digit6[9][5];
+int errorList1[10] = {0,0,0,0,0,0,0,0,0,0};
+int errorList2[10] = {0,0,0,0,0,0,0,0,0,0};
+int errorList3[10] = {0,0,0,0,0,0,0,0,0,0};
+int errorList4[10] = {0,0,0,0,0,0,0,0,0,0};
+int errorList5[10] = {0,0,0,0,0,0,0,0,0,0};
+int errorList6[10] = {0,0,0,0,0,0,0,0,0,0};
 
-int errorList1[10];
-int errorList2[10];
-int errorList3[10];
-int errorList4[10];
-int errorList5[10];
-int errorList6[10];
-
-int matrix[2][3];
-bool libraryMatrix[9][5];
+int matrix[2][3] = {{0, 0, 0},
+					{0, 0, 0}};
+bool libraryMatrix[9][5] = {
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0},
+							{0, 0, 0, 0, 0}	};
 
 // ============================ FUNCTION PROTOYPES ============================
 
@@ -57,7 +122,7 @@ void writeSolvedMatrix();
 void computeMatrix();
 void reduceSecondEntries();
 void reduceFirstEntries();
-void reduceSingleRow(int row, int coloumn);
+void reduceSingleRow(int row, int column);
 void swap2Rows(int row1, int row2);
 void subtract2rows(int multiplier, int rowToFix, int rowToUse);
 
@@ -108,7 +173,8 @@ task main()
  			hasYelledEnough = true;
  		}
 	}
-	if(hasYelledEnough){ //START SCANNING
+	if(hasYelledEnough){ 
+		// ===== BEGIN SCANNING ===
 		bool isBlack = false;
 		for(int row=0; row < 20; row++){
 			for(int col=0; col <15; col++){
@@ -146,7 +212,7 @@ task main()
 				nextPixelRight(); // move colour sensor right on track to
 				// the next cell
 				wait1Msec(50);
-				// the 14th coloumn doesn't scan unless the lines below exists
+				// the 14th column doesn't scan unless the lines below exists
 				if (col == 14){
 					if(SensorValue[COLOR_SENS] <10){
 						 isBlack = 1;
@@ -167,6 +233,8 @@ task main()
 			nextLineDown(); // move the robot down to scan the next line
 			//  on the printed matrix
 		}
+		// ==== END SCANNING ===
+		// ==== BEGIN DIGIT RECOGNITION ===
 		int value = 0;
 		for(int number=0; number<10; number++){
 			// populates an array using text file
@@ -185,7 +253,6 @@ task main()
 			errorList5[number] = compareMatrix5();
 			errorList6[number] = compareMatrix6();
 		}
-
 		// digit estimation
 		int smallestError[6] = {45,45,45,45,45,45};
 		for(int index=0; index<9; index++){
@@ -214,6 +281,7 @@ task main()
 				matrix[1][2] = index;
 			}
 		}
+		// === END DIGIT RECOGNITION
 		//outputing the recognized matrix
 		output2By3Matrix();
 		wait1Msec(15000);
@@ -238,11 +306,11 @@ task main()
 				}
 			}
 		}
-		writeSolvedMatrix();
+		writeSolvedMatrix(); // outputing the rref of the matrix onto a whiteboard
 	}
 	else{ // if the user didn't yell for 2 seconds.
 		//http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
-		setSoundVolume(75);	//Sets the sound volume of the EV3 speaker to 75
+		setSoundVolume(100);	//Sets the sound volume of the EV3 speaker to 75
 		playSound(soundDownwardTones);
 		// Starts playing a soundfile, 'soundDownwardTones.rsf' on the EV3
 		sleep(3000); // allows time for the robot to play the entire sound file
@@ -615,18 +683,15 @@ void writeSolvedMatrix(){
 
 // ========================== RREF FUNCTIONS ==================================
 
-// ============================= SUBTRACT 2 ROWS =============================
+// =========================== SUBTRACT 2 ROWS ===============================
 void subtract2rows(int multiplier, int rowToFix, int rowToUse){
-	// rowToFix is the row we are doing the ERO on, 
-	// rowToUse is the row we are using to fix the rowToFix
-	for (int column = 0; column<3; column++){
-		matrix[rowToFix][column] = matrix[rowToFix][column] 
-								   - multiplier*matrix[rowToUse][column];
+	// rowToFix is the row we are doing the ERO on, rowToUse is the row we are using to fix the rowToFix
+	for (int j =0; j<3;j++){ // jth column. is this okay?
+		matrix[rowToFix][j] = matrix[rowToFix][j] - multiplier*matrix[rowToUse][j];
 	}
 }
-
 // ============================== SWAP 2 ROWS ================================
-// This is an even more useful function if we were to do a 3x4 augmented matrix 
+// even more useful function in R3
 void swap2Rows(int row1, int row2){
 	for (int j =0; j<3;j++){
 		int temp = matrix[row1][j];
@@ -634,18 +699,19 @@ void swap2Rows(int row1, int row2){
 		matrix[row2][j] = temp;
 	}
 }
-// ============================ REDUCE SINGLE ROW =============================
-void reduceSingleRow(int row, int coloumn){
-	int multiplier = matrix[row][coloumn];
+// =========================== REDUCE SINGLE ROW ============================
+void reduceSingleRow(int row, int column){
+	int multiplier = matrix[row][column];
 	for (int j =0; j<3;j++){
 		matrix[row][j] = matrix[row][j]/multiplier; // since whole number unique solution
 	}
 }
-// =========================== REDUCE FIRST ENTRIES ===========================
+
+// =========================== REDUCE FIRST ENTRIES ==========================
 void reduceFirstEntries(){
 	// if this is called, it means it is not of the form [1
-	//													  0] in the first coloumn
-		if (matrix[0][0]>matrix[1][0]){ // if coloumn 1 first row's entry is bigger than second row's entry
+	//													  0] in the first column
+		if (matrix[0][0]>matrix[1][0]){ // if column 1 first row's entry is bigger than second row's entry
 			if (matrix[1][0]==0){ // if second entry is 0
 				reduceSingleRow(1,0); // need to reduce just the first row, using the 1st entry
 			}
@@ -663,15 +729,15 @@ void reduceFirstEntries(){
 		}
 		else{ // if equal
 			subtract2rows(1,1,0);
+
 		}
 }
-
 // =========================== REDUCE SECOND ENTRIES ==========================
 void reduceSecondEntries(){
 	// if this is called, it means it is not of the form [1
-	//													  0] in the second coloumn
-	// but we know that it is (1,0)T in the first coloumn. That means we only need to reduce the second row coloumn
-	// and get rid of the entry in the first row second coloumn. Therefore,
+	//													  0] in the second column
+	// but we know that it is (1,0)T in the first column. That means we only need to reduce the second row column
+	// and get rid of the entry in the first row second column. Therefore,
 	if (matrix[1][1]!=1){
 		reduceSingleRow(1,1); // reduce second row using 2nd entry in 2nd row
 	}
@@ -681,23 +747,34 @@ void reduceSecondEntries(){
 }
 // ============================= COMPUTE MATRIX ==============================
 void computeMatrix(){
-	while ((matrix[0][0]!=1 || matrix[1][0]!=0 || matrix[0][1]!=0 || matrix[1][1]!=1)&& !(( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1][1] == 0 ) ))){ // while not in rref
-		if (matrix[0][0]!=1 || matrix[1][0]!=0 ){
-			reduceFirstEntries();}
-		else{ // at this point, the first coloumn is proper
+	while ( (matrix[0][0]!=1||matrix[1][0]!=0||matrix[0][1]!=0||matrix[1][1]!=1)
+			// while not in rref
+			&& !(matrix[0][0]==0 && matrix[0][1]==0) // while not a zero row in the top row
+			&& !(matrix[1][0]==0 && matrix[1][1]==0) ){ // while not a zero row in the bottom row
+		if (matrix[0][0]!=1 || matrix[1][0]!=0){
+			reduceFirstEntries();
+		}
+		else{ // at this point, the first column is proper
 			reduceSecondEntries();
 		}
 		output2By3Matrix();
 		wait1Msec(500);
 	}
-	if ( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1][1] == 0 )){
+	if ((matrix[1][0] == 0 && matrix[1][1] == 0 && matrix[1][2] != 0)
+		||(matrix[0][0] == 0 && matrix[0][1] == 0 && matrix[0][2] != 0) ){
+		/* if the rref of the matrix has any row of zeros where the augmented 
+		   portion (after the line | ) is non-zero, ex. is something like 
+		   [0 0 | 1] in a row
+		   then the system is consisttent and has no solution
+		*/
 		//Sets the sound volume of the EV3 speaker to 75
-		setSoundVolume(75);
-		// Starts playing a soundfile, 'Bravo.rsf' on the EV3
-		playSound(soundDownwardTones);
+		setSoundVolume(100);
+		// Starts playing a soundfile, on EV3
+		playSoundFile("Uh-oh");
 		sleep(3000);
 		displayBigTextLine(1,"Matrix is inconsistent");
-	}
+		wait1Msec(2000);
+	} // otherwise, there is at least one solution
 	output2By3Matrix();
 	wait1Msec(4000);
 }

@@ -1,22 +1,19 @@
-// TO DO - add check for inconsistency, divide by zero???
-// inconsistency might be fine, but check divide by 0.
-
-
-// Abhi's RREF for 2by3 matricies (augmented), that works for only positive entries
+// Abhi's RREF for 2by3 matricies (augmented), that works for only positive entries with whole number
+// steps and solutions
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>	
 #include <iomanip>
-// in a 2d array, first [] is rows, second [] is coloumns
 using namespace std;
 
 // in a 2d array, first [] is rows, second [] is coloumns
 int matrix[2][3] = {
-				{1,1,6},
-				{1,2,9}
-				};
-// will give [3 3]T -- as expected
+				{1,1,7},
+				{1,1,4}
+				}; // defined globally because robotc will need this
+				// so easier just to define this way
+// will give "inconsistent solution" -- as expected
 // ==================================== OUTPUT MATRIX ===================
 void outputMatrix(){
 	for (int i =0;i<2;i++){
@@ -53,7 +50,7 @@ void reduceSingleRow(int row, int coloumn){
 	}
 }
 
-// ==================================== SWAP 2 ROWS ===================
+// ==================================== REDUCE FIRST ===================
 void reduceFirstEntries(){
 	// if this is called, it means it is not of the form [1
 	//													  0] in the first coloumn
@@ -83,6 +80,7 @@ void reduceFirstEntries(){
 
 		}
 }
+// ==================================== REDUCE SECOND ===================
 void reduceSecondEntries(){
 	// if this is called, it means it is not of the form [1
 	//													  0] in the second coloumn
@@ -97,14 +95,11 @@ void reduceSecondEntries(){
 		subtract2rows(matrix[0][1],0,1);
 	}
 }
+// ==================================== COMPUTE MATRIX ===================
 void computeMatrix(){
-	// add check for inconsistency
-	/*
-if ( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1][1] == 0 ) ){
-	cout <<"Error: system incosistent" << endl;
-}
-	*/
-	while (matrix[0][0]!=1 || matrix[1][0]!=0 || matrix[0][1]!=0 || matrix[1][1]!=1){ // while not in rref
+	while ( (matrix[0][0]!=1 || matrix[1][0]!=0 || matrix[0][1]!=0 || matrix[1][1]!=1)  // while not in rref
+			&& !(matrix[0][0]==0 && matrix[0][1]==0) // while not a zero row in the top row
+			&& !(matrix[1][0]==0 && matrix[1][1]==0) ){ // while not a zero row in the bottom row
 		if (matrix[0][0]!=1 || matrix[1][0]!=0){
 			cout<<"Called Reduce FIRST Entries"<<endl;
 			reduceFirstEntries();}
@@ -114,10 +109,18 @@ if ( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1
 		}
 		outputMatrix();
 	}
-	cout<<"The final solution is"<<endl;
+	if ((matrix[1][0]==0 && matrix[1][1]==0 && matrix[1][2]!=0)||(matrix[0][0]==0 && matrix[0][1]==0  && matrix[0][2]!=0) ){
+		// if the rref of the matrix has any row of zeros where the augmented portion (after the line | ) is non-zero
+		// ex. is something like [0 0 | 1] in a row
+		// then the system is consisttent and has no solution
+		cout << "The system is inconsistent, with final matrix"<<endl;
+	}
+	else{
+		cout<<"The final solution is"<<endl;
+	}
 	outputMatrix();
 }
-/* FROM ROBOTC ONE:
+/* SOME OLD STUFF FROM ROBOTC BEFORE main_commenting.c :
 // ============================= COMPUTE MATRIX ==============================
 void computeMatrix(){
 	while ((matrix[0][0]!=1 || matrix[1][0]!=0 || matrix[0][1]!=0 || matrix[1][1]!=1)&& !(( (matrix[0][0] == 0 && matrix[1][0] == 0 ) || (matrix[0][1] == 0 && matrix[1][1] == 0 ) ))){ // while not in rref
