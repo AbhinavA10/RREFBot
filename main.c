@@ -105,7 +105,7 @@ task main()
  		 begin = true;
  		}
 	}
-
+begin = true;
 	if(begin){
 			//write REST OF MAIN HERE =========
 	//START SCANNING

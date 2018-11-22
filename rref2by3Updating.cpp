@@ -10,7 +10,7 @@ using namespace std;
 // in a 2d array, first [] is rows, second [] is coloumns
 int matrix[2][3] = {
 				{1,1,7},
-				{1,1,4}
+				{1,2,9}
 				}; // defined globally because robotc will need this
 				// so easier just to define this way
 // will give "inconsistent solution" -- as expected

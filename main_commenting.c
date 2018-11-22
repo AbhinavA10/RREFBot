@@ -1,10 +1,35 @@
 // TODO: write code to show everything but scanning working perfectly - just comment out the scan portion
+// TODO: make robot move forward before writing after scanning
 /*SOURCES:
 For sound: http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/
 LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
 */
 #include "PC_FileIO.c"
-// ============================= INITILIZE ARRAYS ============================
+// =========================== GLOBAL CONSTANTS =============================
+// Note: these constants must be global as they are used throughout the
+// many functions that we have created.
+const int AXIAL_CONVERSION = 180/(2.75*PI);
+// conversion factor for the wheels that move the entire robot
+const float SWEEP_CONVERSION = 180/(0.725*PI);
+// conversion factor for the gear on the belt that moves the
+// colour sensor horizontally. Radius of the gear is 0.725 cm
+const float HEIGHT = 1.0; // Height of 1 cell in the printed matrix
+const float WIDTH = 1.0; // Width of 1 cell in the printed matrix
+const int ROW_NUM=9; // number of rows in 1 section of the printed matrix
+const int COL_NUM=5; // number of columns in 1 section of the printed matrix
+// Note: the printed matrix is split up into 6 different sections
+// one for each digit
+const int ROW_NUM_TOTAL = 20;
+const int COL_NUM_TOTAL = 15;
+const int MOTOR_PEN = motorA;
+const int MOTOR_AXIAL = motorC;
+const int MOTOR_BELT = motorB;
+const int COLOR_SENS = S2;
+const int SOUND_SENSOR = S1;
+const int PEN_SPEED_FORWARD = 5;
+const int PEN_SPEED_BACKWARD = -5;
+
+// ============================= INITILIAZE ARRAYS ============================
 bool Digit1[9][5] = {
 					{0, 0, 0, 0, 0},
 					{0, 0, 0, 0, 0},
@@ -73,8 +98,6 @@ int errorList4[10] = {0,0,0,0,0,0,0,0,0,0};
 int errorList5[10] = {0,0,0,0,0,0,0,0,0,0};
 int errorList6[10] = {0,0,0,0,0,0,0,0,0,0};
 
-int matrix[2][3] = {{0, 0, 0},
-					{0, 0, 0}};
 bool libraryMatrix[9][5] = {
 							{0, 0, 0, 0, 0},
 							{0, 0, 0, 0, 0},
@@ -85,6 +108,8 @@ bool libraryMatrix[9][5] = {
 							{0, 0, 0, 0, 0},
 							{0, 0, 0, 0, 0},
 							{0, 0, 0, 0, 0}	};
+int matrix[2][3] = {{0, 0, 0},
+					{0, 0, 0}}; // the final matrix, used for rref computation
 
 // ============================ FUNCTION PROTOYPES ============================
 
@@ -93,13 +118,15 @@ void nextPixelRight();
 void nextLineDown();
 void goFullyLeft();
 void output2By3Matrix();
-// ======================== DIGIT RECOGNITION TESTS ===========================
+void scanMatrix();
+// ======================== DIGIT RECOGNITION ===========================
 int compareMatrix1();
 int compareMatrix2();
 int compareMatrix3();
 int compareMatrix4();
 int compareMatrix5();
 int compareMatrix6();
+void recognizeDigits();
 // ============================ WRITING FUNCTIONS =============================
 void placePen (bool setPen);
 void moveLeft(int dist);
@@ -116,8 +143,16 @@ void writeSix();
 void writeSeven();
 void writeEight();
 void writeNine();
-void outputWrite(int value);
+void writeNumber(int value);
 void writeSolvedMatrix();
+
+// output raw matrix functions
+void outputMatrix1();
+void outputMatrix2();
+void outputMatrix3();
+void outputMatrix4();
+void outputMatrix5();
+void outputMatrix6();
 // ============================= RREF FUNCTIONS ==============================
 void computeMatrix();
 void reduceSecondEntries();
@@ -129,32 +164,6 @@ void subtract2rows(int multiplier, int rowToFix, int rowToUse);
 // =============================== TASK MAIN  ================================
 task main()
 {
-	string fileName="Numbers.txt";
-	// our text file for the predefined library of scans
-	const int AXIAL_CONVERSION = 180/(2.75*PI);
-	// conversion factor for the wheels that move the entire robot
-	const float SWEEP_CONVERSION = 180/(0.725*PI);
-	// conversion factor for the gear on the belt that moves the 
-	// colour sensor horizontally. Radius of the gear is 0.725 cm
-	const float HEIGHT = 1.0; // Height of 1 cell in the printed matrix
-	const float WIDTH = 1.1; // Width of 1 cell in the printed matrix
-	const int ROW_NUM=9; // number of rows in 1 section of the printed matrix
-	const int COL_NUM=5; // number of columns in 1 section of the printed matrix
-	// Note: the printed matrix is split up into 6 different sections
-	// one for each digit
-	const int ROW_NUM_TOTAL = 20;
-	const int COL_NUM_TOTAL = 15;
-	const int MOTOR_PEN = motorA;
-	const int MOTOR_AXIAL = motorC;
-	const int MOTOR_BELT = motorB;
-	const int COLOR_SENS = S2;
-	const int SOUND_SENSOR = S1;
-	const int PEN_SPEED_FORWARD = 5;
-	const int PEN_SPEED_BACKWARD = -5;
-
-	TFileHandle fin;
-	bool fileOkay=openReadPC(fin,fileName);
-
 	SensorType[COLOR_SENS] = sensorEV3_Color;
 	wait1Msec(50);
 	SensorMode[COLOR_SENS] = modeEV3Color_Reflected;
@@ -163,9 +172,9 @@ task main()
 	// we used the automatic robotc sensor generator to learn the proper name
 	// for the "Legacy NXT Sound sensor"
 	wait1Msec(50);
-	
+
 	bool hasYelledEnough = false;
-	while(SensorValue[SOUND_SENSOR] < 90){} 
+	while(SensorValue[SOUND_SENSOR] < 90){}
 	// dont start until someone starts yelling
  	clearTimer(T1);
  	while(SensorValue[SOUND_SENSOR] >70 && !hasYelledEnough){
@@ -173,123 +182,29 @@ task main()
  			hasYelledEnough = true;
  		}
 	}
-	if(hasYelledEnough){ 
-		// ===== BEGIN SCANNING ===
-		bool isBlack = false;
-		for(int row=0; row < 20; row++){
-			for(int col=0; col <15; col++){
-				// determine black or white
-				if(SensorValue[COLOR_SENS] < 10){
-					isBlack = true;
-				}
-				else{
-					isBlack = false;
-				}
-				// store in first digit
-				if(col<5 && row<9){
-					Digit1[row][col]= isBlack;
-				}
-				// store in second digit
-				else if(col>=5 && col<10 && row<9){
-					Digit2[row][col-5]= isBlack;
-				}
-				// store in third digit
-				else if(col>=10 && col<15 && row<9){
-					Digit3[row][col-10]= isBlack;
-				}
-				// store in 4th digit
-				else if(col<5 && row>11){
-					Digit4[row-12][col]= isBlack;
-				}
-				// 5th
-				else if(col>=5 && col<10 && row>11){
-					Digit5[row-12][col-5]= isBlack;
-				}
-				// 6th
-				else  if(col>=10 && col<15 && row>11){
-					Digit6[row-12][col-10]= isBlack;
-				}
-				nextPixelRight(); // move colour sensor right on track to
-				// the next cell
-				wait1Msec(50);
-				// the 14th column doesn't scan unless the lines below exists
-				if (col == 14){
-					if(SensorValue[COLOR_SENS] <10){
-						 isBlack = 1;
-					}
-					else{
-						 isBlack = 0;
-					}
-					if(row < 9){
-						Digit3[row][col-10] = isBlack;
-					}
-					else if(row > 11){
-						Digit6[row-12][col-10] = isBlack;
-					}
-				}
-			}
-			goFullyLeft(); // to go all the way back to the starting position
-			// on the track (left)
-			nextLineDown(); // move the robot down to scan the next line
-			//  on the printed matrix
-		}
-		// ==== END SCANNING ===
-		// ==== BEGIN DIGIT RECOGNITION ===
-		int value = 0;
-		for(int number=0; number<10; number++){
-			// populates an array using text file
-			for(int i=0; i<9; i++){
-				for(int j=0; j<5; j++){
-					readIntPC(fin, value);
-					libraryMatrix[i][j] = value;
-				}
-			}
-			// fill a list with number of errors between each matrix
-			// i.e. the number of dissimilarities between them
-			errorList1[number] = compareMatrix1();
-			errorList2[number] = compareMatrix2();
-			errorList3[number] = compareMatrix3();
-			errorList4[number] = compareMatrix4();
-			errorList5[number] = compareMatrix5();
-			errorList6[number] = compareMatrix6();
-		}
-		// digit estimation
-		int smallestError[6] = {45,45,45,45,45,45};
-		for(int index=0; index<9; index++){
-			if(errorList1[index] < smallestError[0]){
-				smallestError[0] = errorList1[index];
-				matrix[0][0] = index;
-			}
-			if(errorList2[index] < smallestError[1]){
-				smallestError[1] = errorList2[index];
-				matrix[0][1] = index;
-			}
-			if(errorList3[index] < smallestError[2]){
-				smallestError[2] = errorList3[index];
-				matrix[0][2] = index;
-			}
-			if(errorList4[index] < smallestError[3]){
-				smallestError[3] = errorList4[index];
-				matrix[1][0] = index;
-			}
-			if(errorList5[index] < smallestError[4]){
-				smallestError[4] = errorList5[index];
-				matrix[1][1] = index;
-			}
-			if(errorList6[index] < smallestError[5]){
-				smallestError[5] = errorList6[index];
-				matrix[1][2] = index;
-			}
-		}
-		// === END DIGIT RECOGNITION
-		//outputing the recognized matrix
-		output2By3Matrix();
+	hasYelledEnough=true;
+	if(hasYelledEnough){
+		scanMatrix();
+		recognizeDigits();
+		outputMatrix1();
+		wait1Msec(3000);
+		outputMatrix2();
+		wait1Msec(3000);
+		outputMatrix3();
+		wait1Msec(3000);
+		outputMatrix4();
+		wait1Msec(3000);
+		outputMatrix5();
+		wait1Msec(3000);
+		outputMatrix6();
+		wait1Msec(3000);
+		output2By3Matrix();//outputing the recognized matrix
 		wait1Msec(15000);
 		eraseDisplay();
-		computeMatrix(); // taking the matrix to rref 
+		computeMatrix(); // taking the matrix to rref
 		eraseDisplay();
-		output2By3Matrix();
-		wait1Msec(15000);
+		output2By3Matrix(); // outputing the rref version on the screen
+		wait1Msec(10000);
 		for (int index = 0; index < 2; index++){
 			for (int count = 0; count < 3; count++){
 				if (matrix[index][count] >= 10){
@@ -299,20 +214,21 @@ task main()
 					// i.e. if it scans improperly
 				}
 				if (matrix[index][count] < 0){
-					matrix[index][count] *= -1 ; 
+					matrix[index][count] *= -1 ;
 					// output something in case we didn't get a positive solution
 					// as we are not able to output negative signs
 					// this is only in case our scan doesn't have a positive solution
 				}
 			}
 		}
-		writeSolvedMatrix(); // outputing the rref of the matrix onto a whiteboard
+		writeSolvedMatrix();//outputing the rref of the matrix onto a whiteboard
 	}
 	else{ // if the user didn't yell for 2 seconds.
-		//http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
+		//http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/
+		//LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
 		setSoundVolume(100);	//Sets the sound volume of the EV3 speaker to 75
 		playSound(soundDownwardTones);
-		// Starts playing a soundfile, 'soundDownwardTones.rsf' on the EV3
+		// Starts playing the built in sound 'soundDownwardTones.rsf' on the EV3
 		sleep(3000); // allows time for the robot to play the entire sound file
 	}
 }
@@ -341,7 +257,7 @@ void goFullyLeft(){
 	motor[MOTOR_BELT]=0;
 }
 // ============================ COMPARE MATRIX 1 =============================
-/* We need to have these functions below because we can't pass 2D arrays 
+/* We need to have these functions below because we can't pass 2D arrays
 as paramters in RobotC. Otherwise, we would have passed (int digit [9][5], int libraryMatrix[9][5]) and
 compared it by reference.
 */
@@ -500,9 +416,9 @@ void writeZero()
 {
 	placePen(1);
 	moveRight(3);
-	moveRobotDown(8, true);
+	moveRobotDown(8, true);// move down 8
 	moveLeft(3);
-	moveRobotDown(8, false);
+	moveRobotDown(8, false); // move up 8
 	placePen(0);
 }
 // =============================== WRITE ONE ================================
@@ -526,7 +442,6 @@ void writeTwo()
 	moveRobotDown(4, true);
 	moveRight(3);
 	placePen(0);
-	// move up 8
 	moveRobotDown(8, false);
 	moveLeft(3);
 }
@@ -543,7 +458,6 @@ void writeThree()
 	moveRobotDown(4, true);
 	moveLeft(3);
 	placePen(0);
-	// move up
 	moveRobotDown(8, false);
 }
 // =============================== WRITE FOUR ================================
@@ -568,7 +482,6 @@ void writeFive()
 	moveRobotDown(4, true);
 	moveLeft(3);
 	placePen(0);
-	// move up
 	moveRobotDown(8, false);
 }
 // =============================== WRITE SIX ================================
@@ -625,7 +538,8 @@ void writeNine()
 	placePen(0);
 }
 // =============================== OUTPUT WRITE ===============================
-void outputWrite(int value)
+// this is a function to make calling the respective write function easier
+void writeNumber(int value)
 {
 	if (value == 0)
 	{
@@ -674,7 +588,7 @@ void writeSolvedMatrix(){
 	{
 		for (int count = 0; count < 3; count++)
 		{
-			outputWrite(matrix[index][count]);
+			writeNumber(matrix[index][count]);
 			moveRight(5);
 		}
 		moveNextRow();
@@ -762,19 +676,194 @@ void computeMatrix(){
 	}
 	if ((matrix[1][0] == 0 && matrix[1][1] == 0 && matrix[1][2] != 0)
 		||(matrix[0][0] == 0 && matrix[0][1] == 0 && matrix[0][2] != 0) ){
-		/* if the rref of the matrix has any row of zeros where the augmented 
-		   portion (after the line | ) is non-zero, ex. is something like 
+		/* if the rref of the matrix has any row of zeros where the augmented
+		   portion (after the line | ) is non-zero, ex. is something like
 		   [0 0 | 1] in a row
 		   then the system is consisttent and has no solution
 		*/
-		//Sets the sound volume of the EV3 speaker to 75
 		setSoundVolume(100);
-		// Starts playing a soundfile, on EV3
-		playSoundFile("Uh-oh");
+		playSoundFile("Uh-oh"); // Starts playing a soundfile, on EV3
 		sleep(3000);
-		displayBigTextLine(1,"Matrix is inconsistent");
+		displayBigTextLine(1,"Matrix is");
+		displayBigTextLine(3," inconsistent.");
 		wait1Msec(2000);
-	} // otherwise, there is at least one solution
+	}// otherwise, there is at least one solution
 	output2By3Matrix();
 	wait1Msec(4000);
+}
+// ============================= SCAN MATRIX ==============================
+void scanMatrix(){
+	bool isBlack = false;
+	for(int row=0; row < 20; row++){
+		for(int col=0; col <15; col++){
+			// determine black or white
+			if(SensorValue[COLOR_SENS] < 40){
+				isBlack = true;
+			}
+			else{
+				isBlack = false;
+			}
+			// store in first digit
+			if(col<5 && row<9){
+				Digit1[row][col]= isBlack;
+			}
+			// store in second digit
+			else if(col>=5 && col<10 && row<9){
+				Digit2[row][col-5]= isBlack;
+			}
+			// store in third digit
+			else if(col>=10 && col<15 && row<9){
+				Digit3[row][col-10]= isBlack;
+			}
+			// store in 4th digit
+			else if(col<5 && row>11){
+				Digit4[row-12][col]= isBlack;
+			}
+			// 5th
+			else if(col>=5 && col<10 && row>11){
+				Digit5[row-12][col-5]= isBlack;
+			}
+			// 6th
+			else  if(col>=10 && col<15 && row>11){
+				Digit6[row-12][col-10]= isBlack;
+			}
+			nextPixelRight(); // move colour sensor right on track to
+			// the next cell
+			wait1Msec(50);
+			// the 14th column doesn't scan unless the lines below exists
+			if (col == 14){
+				if(SensorValue[COLOR_SENS] <40){
+					 isBlack = 1;
+				}
+				else{
+					 isBlack = 0;
+				}
+				if(row < 9){
+					Digit3[row][col-10] = isBlack;
+				}
+				else if(row > 11){
+					Digit6[row-12][col-10] = isBlack;
+				}
+			}
+		}
+		goFullyLeft(); // to go all the way back to the starting position
+		// on the track (left)
+		nextLineDown(); // move the robot down to scan the next line
+		//  on the printed matrix
+	}
+	// ==== END SCANNING ===
+}
+// ============================= RECOGNIZE DIGITS ==============================
+void recognizeDigits(){
+	string fileName="Numbers.txt";
+	// our text file for the predefined library of scans
+
+	TFileHandle fin;
+	bool fileOkay=openReadPC(fin,fileName);
+
+	int value = 0;
+	for(int number=0; number<10; number++){
+		// populates an array using text file
+		for(int i=0; i<9; i++){
+			for(int j=0; j<5; j++){
+				readIntPC(fin, value);
+				libraryMatrix[i][j] = value;
+			}
+		}
+		// fill a list with number of errors between each matrix
+		// i.e. the number of dissimilarities between them
+		errorList1[number] = compareMatrix1();
+		errorList2[number] = compareMatrix2();
+		errorList3[number] = compareMatrix3();
+		errorList4[number] = compareMatrix4();
+		errorList5[number] = compareMatrix5();
+		errorList6[number] = compareMatrix6();
+	}
+	// digit estimation
+	int smallestError[6] = {45,45,45,45,45,45};
+	for(int index=0; index<9; index++){
+		if(errorList1[index] < smallestError[0]){
+			smallestError[0] = errorList1[index];
+			matrix[0][0] = index;
+		}
+		if(errorList2[index] < smallestError[1]){
+			smallestError[1] = errorList2[index];
+			matrix[0][1] = index;
+		}
+		if(errorList3[index] < smallestError[2]){
+			smallestError[2] = errorList3[index];
+			matrix[0][2] = index;
+		}
+		if(errorList4[index] < smallestError[3]){
+			smallestError[3] = errorList4[index];
+			matrix[1][0] = index;
+		}
+		if(errorList5[index] < smallestError[4]){
+			smallestError[4] = errorList5[index];
+			matrix[1][1] = index;
+		}
+		if(errorList6[index] < smallestError[5]){
+			smallestError[5] = errorList6[index];
+			matrix[1][2] = index;
+		}
+	}
+	// === END DIGIT RECOGNITION
+}
+ // ================== DEBUG FUNCTIONS ==============
+void outputMatrix1(){
+
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0], Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
+}
+
+void outputMatrix2(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit2[i][0], Digit2[i][1], Digit2[i][2], Digit2[i][3], Digit2[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
+}
+void outputMatrix3(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit3[i][0], Digit3[i][1], Digit3[i][2], Digit3[i][3], Digit3[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
+}
+
+void outputMatrix4(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit4[i][0], Digit4[i][1], Digit4[i][2], Digit4[i][3], Digit4[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
+}
+void outputMatrix5(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit5[i][0], Digit5[i][1], Digit5[i][2], Digit5[i][3], Digit5[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
+}
+void outputMatrix6(){
+	int lineNum =0;
+	for (int i=0;i<9; i++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit6[i][0], Digit6[i][1], Digit6[i][2], Digit6[i][3], Digit6[i][4]);
+		lineNum++;
+	}
+	wait1Msec(5000);
+
 }
