@@ -120,7 +120,7 @@ int matrix[2][3] = {{0, 0, 0},
 					{0, 0, 0}}; // the final matrix, used for rref computation
 
 // ============================ FUNCTION PROTOYPES ============================
-
+bool isFrustrated(); // function to check if the user yelled for 2 seconds
 // ============================ SCANNING FUNCTIONS ===========================
 void nextPixelRight();
 void nextLineDown();
@@ -181,17 +181,8 @@ task main()
 	SensorType[SOUND_SENSOR] = sensorSoundDB;
 	// we used the automatic robotc sensor generator to learn the proper name
 	// for the "Legacy NXT Sound sensor"
-	wait1Msec(50);
 
-	bool hasYelledEnough = false;
-	while(SensorValue[SOUND_SENSOR] < 90){}
-	// dont start until someone starts yelling
- 	clearTimer(T1);
- 	while(SensorValue[SOUND_SENSOR] >70 && !hasYelledEnough){
- 		if(time1[T1] > 2000){ // if they have been yelling for 2 seconds
- 			hasYelledEnough = true;
- 		}
-	}
+	bool hasYelledEnough = isFrustrated();
 	
 	if(hasYelledEnough){
 		scanMatrix();
@@ -249,7 +240,19 @@ task main()
 	}
 }
 // =========================== END OF TASK MAIN ===============================
-
+// ============================ IS FRUSTRATED  ================================
+bool isFrustrated(){
+	while(SensorValue[SOUND_SENSOR] < 90){}
+	// dont start until someone starts yelling
+ 	clearTimer(T1);
+ 	while(SensorValue[SOUND_SENSOR] >70){
+ 		if(time1[T1] > 2000){ // if they have been yelling for 2 seconds
+ 			return true;
+ 		}
+	}
+	return false; // indicates user didn't yell for a continous 2 seconds
+	// from when they first started
+}
 // ============================ NEXT PIXEL RIGHT =============================
 void nextPixelRight(){
 	motor[MOTOR_BELT]=-30;
