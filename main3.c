@@ -178,11 +178,11 @@ task main()
 	// dont start until someone starts yelling
  	clearTimer(T1);
  	while(SensorValue[SOUND_SENSOR] >70 && !hasYelledEnough){
- 		if(time1[T1] > 1000){ // if they have been yelling for 1 second
+ 		if(time1[T1] > 2000){ // if they have been yelling for 2 second
  			hasYelledEnough = true;
  		}
 	}
-	hasYelledEnough=true;
+	
 	if(hasYelledEnough){
 		scanMatrix();
 		recognizeDigits();
