@@ -282,8 +282,8 @@ int libraryMatrix[9][5]) and compared it by reference.
 */
 int compareMatrix1(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit1[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -294,8 +294,8 @@ int compareMatrix1(){
 // ============================ COMPARE MATRIX 2 =============================
 int compareMatrix2(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit2[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -306,8 +306,8 @@ int compareMatrix2(){
 // ============================ COMPARE MATRIX 3 =============================
 int compareMatrix3(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit3[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -318,8 +318,8 @@ int compareMatrix3(){
 // ============================ COMPARE MATRIX 4 =============================
 int compareMatrix4(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit4[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -330,8 +330,8 @@ int compareMatrix4(){
 // ============================ COMPARE MATRIX 5 =============================
 int compareMatrix5(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit5[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -342,8 +342,8 @@ int compareMatrix5(){
 // ============================ COMPARE MATRIX 6 =============================
 int compareMatrix6(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
+	for(int i=0; i< ROW_NUM; i++){
+		for(int j=0; j<COL_NUM; j++){
 			if(Digit6[i][j] != libraryMatrix[i][j]){
 				errorCount++;
 			}
@@ -792,8 +792,8 @@ void recognizeDigits(){
 	int value = 0;
 	for(int number=0; number<10; number++){
 		// populates an array using text file
-		for(int i=0; i<9; i++){
-			for(int j=0; j<5; j++){
+		for(int i=0; i<ROW_NUM; i++){
+			for(int j=0; j<COL_NUM; j++){
 				readIntPC(fin, value);
 				libraryMatrix[i][j] = value;
 			}
@@ -809,9 +809,9 @@ void recognizeDigits(){
 	}
 	// digit estimation
 	// after comparing each predefined matrix to the current scan,
-	// we find the one with the smalleest errors
+	// we find the one with the smallest errors
 	int smallestError[6] = {45,45,45,45,45,45};
-	for(int index=0; index<9; index++){
+	for(int index=0; index<ROW_NUM; index++){
 		if(errorList1[index] < smallestError[0]){ 
 		// finding the most similar predefined matrix
 			smallestError[0] = errorList1[index]; 
@@ -844,7 +844,7 @@ void recognizeDigits(){
 // we needed multiple outputMatrix functions
 void outputMatrix1(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0], 
 						Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
 		lineNum++;
@@ -853,7 +853,7 @@ void outputMatrix1(){
 }
 void outputMatrix2(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit2[i][0], 
 						Digit2[i][1], Digit2[i][2], Digit2[i][3], Digit2[i][4]);
 		lineNum++;
@@ -862,7 +862,7 @@ void outputMatrix2(){
 }
 void outputMatrix3(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit3[i][0], 
 						Digit3[i][1], Digit3[i][2], Digit3[i][3], Digit3[i][4]);
 		lineNum++;
@@ -871,7 +871,7 @@ void outputMatrix3(){
 }
 void outputMatrix4(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit4[i][0], 
 						Digit4[i][1], Digit4[i][2], Digit4[i][3], Digit4[i][4]);
 		lineNum++;
@@ -880,7 +880,7 @@ void outputMatrix4(){
 }
 void outputMatrix5(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit5[i][0], 
 						Digit5[i][1], Digit5[i][2], Digit5[i][3], Digit5[i][4]);
 		lineNum++;
@@ -889,7 +889,7 @@ void outputMatrix5(){
 }
 void outputMatrix6(){
 	int lineNum =0;
-	for (int i=0;i<9; i++){
+	for (int i=0;i<ROW_NUM; i++){
 		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit6[i][0], 
 						Digit6[i][1], Digit6[i][2], Digit6[i][3], Digit6[i][4]);
 		lineNum++;
