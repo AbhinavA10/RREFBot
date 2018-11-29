@@ -126,7 +126,7 @@ int matrix[2][3] = {{0, 0, 0},
 					{0, 0, 0}}; // the final matrix, used for rref computation
 
 // ============================ FUNCTION PROTOYPES ============================
-void isFrustrated(); // function to check if the user yelled for 2 seconds
+bool isFrustrated(); // function to check if the user yelled for 2 seconds
 // ============================ SCANNING FUNCTIONS ===========================
 void nextPixelRight();
 void nextLineDown();
