@@ -25,18 +25,23 @@ const int ROW_NUM=9; // number of rows in 1 section of the printed matrix
 const int COL_NUM=5; // number of columns in 1 section of the printed matrix
 // Note: the printed matrix is split up into 6 different sections
 // one for each digit
-const int ROW_NUM_TOTAL = 20;
-const int COL_NUM_TOTAL = 15;
-const int PEN_SPEED_FORWARD = 5;
+const int ROW_NUM_TOTAL = 20; // for the printed matrix
+const int COL_NUM_TOTAL = 15; // for the printed matrix
+const int ROW_NUM_FINAL = 2; // for the recognized and rref matrix
+const int COL_NUM_FINAL = 3;// for the recognized and rref matrix
+const int PEN_SPEED_FORWARD = 5; // for the motor that lifts the marker
 const int PEN_SPEED_BACKWARD = -5;
-const int AXIAL_MOTOR_SPEED = 20;
-const int MOTOR_BELT_SPEED = 10;
-const int ANGLE_PEN = 60;
+const int AXIAL_MOTOR_SPEED = 10; 
+// for moving the entire robot forwards and backwards
+const int MOTOR_BELT_SPEED = 10; 
+// for moving the belt/marker system along left and right along the track
+const int ANGLE_PEN = 60; // max angle to lift the pen
+const int COLOR_THRESHOLD = 25; //determined by testing the scanning in WEEF lab
 const int MOTOR_PEN = motorA;
 const int MOTOR_BELT = motorB;
 const int MOTOR_AXIAL = motorC;
 const int SOUND_SENSOR = S1;
-const int COLOR_SENS = S2;
+const int COLOR_SENSOR = S2;
 
 // ============================= INITILIAZE ARRAYS ============================
 bool Digit1[9][5] = {
@@ -175,12 +180,12 @@ void subtract2rows(int multiplier, int rowToFix, int rowToUse);
 // =============================== TASK MAIN  ================================
 task main()
 {
-	SensorType[COLOR_SENS] = sensorEV3_Color;
+	SensorType[COLOR_SENSOR] = sensorEV3_Color;
 	wait1Msec(50);
-	SensorMode[COLOR_SENS] = modeEV3Color_Reflected;
+	SensorMode[COLOR_SENSOR] = modeEV3Color_Reflected;
 	wait1Msec(50);
 	SensorType[SOUND_SENSOR] = sensorSoundDB;
-	// we used the automatic robotc sensor generator to learn the proper name
+	// we used the automatic ROBOTC sensor generator to learn the proper name
 	// for the "Legacy NXT Sound sensor"
 	wait1Msec(50);
 	
@@ -212,8 +217,8 @@ task main()
 		eraseDisplay();
 		output2By3Matrix(); // outputing the rref version on the screen
 		wait1Msec(10000);
-		for (int index = 0; index < 2; index++){
-			for (int count = 0; count < 3; count++){
+		for (int index = 0; index < ROW_NUM_FINAL; index++){
+			for (int count = 0; count < COL_NUM_FINAL; count++){
 				if (matrix[index][count] >= 10){
 					int sum = matrix[index][count] - 10;
 					matrix[index][count] -= sum+1;
@@ -229,35 +234,41 @@ task main()
 				}
 			}
 		}
-		moveRobotDown(60, false);
+		moveRobotDown(60, false); // move the robot up, away from the scan spot
 		writeSolvedMatrix();//outputing the rref of the matrix onto a whiteboard
 	}
 	else{ // if the user didn't yell for 2 seconds.
 		//http://help.robotc.net/WebHelpMindstorms/index.htm#Resources/topics/
 		//LEGO_EV3/ROBOTC/Sounds/playSoundFile.htm
-		setSoundVolume(100);	//Sets the sound volume of the EV3 speaker to ()
+		setSoundVolume(100);	//Sets the sound volume of the EV3 speaker
 		playSound(soundDownwardTones);
 		// Starts playing the built in sound 'soundDownwardTones.rsf' on the EV3
 		sleep(3000); // allows time for the robot to play the entire sound file
 	}
 }
 // =========================== END OF TASK MAIN ===============================
+
 // ============================ IS FRUSTRATED  ================================
+// This is a function to determine whether the user has yelled in the proper
+// manner, required to start the robot
+// The values of 90 and 70 used below were found by testing the program
+// in a room with ambient noise (E5 Lab)
 bool isFrustrated(){
 	while(SensorValue[SOUND_SENSOR] < 90){}
-	// dont start until someone starts yelling
+	// dont goforward  until someone starts yelling (loud sound)
  	clearTimer(T1);
- 	while(SensorValue[SOUND_SENSOR] >70){
- 		if(time1[T1] > 1000){ // if they have been yelling for 2 seconds
+ 	while(SensorValue[SOUND_SENSOR] > 70){
+ 		if(time1[T1] > 1000){ // if they have been yelling for at least 1 second
  			return true;
  		}
 	}
-	return false; // indicates user didn't yell for a continous 2 seconds
+	return false; // indicates user didn't yell for a continous second
 	// from when they first started
 }
 // ============================ NEXT PIXEL RIGHT =============================
+// this is a function to move one unit right when scanning the printed matrix
 void nextPixelRight(){
-	motor[MOTOR_BELT]=-30;
+	motor[MOTOR_BELT]=-3*MOTOR_BELT_SPEED;
 	nMotorEncoder[MOTOR_BELT]=0;
 	while(nMotorEncoder[MOTOR_BELT] >= (int)((-1)*WIDTH*SWEEP_CONVERSION))
 	{}
@@ -265,16 +276,20 @@ void nextPixelRight(){
 }
 
 // ============================ NEXT LINE DOWN =============================
+// This is a function to move the robot one line down when scanning the 
+// printed matrix
 void nextLineDown(){
-	motor[MOTOR_AXIAL]=-30;
+	motor[MOTOR_AXIAL]=-3*AXIAL_MOTOR_SPEED;
 	nMotorEncoder[MOTOR_AXIAL]=0;
 	while(nMotorEncoder[MOTOR_AXIAL] >= (-1)*HEIGHT*AXIAL_CONVERSION)
 	{}
 	motor[MOTOR_AXIAL]=0;
 }
 // ============================ GO FULLY LEFT =============================
+// this is a function to move from the right end of the track, to the left end
+// of the track once the line is done being scanned
 void goFullyLeft(){
-	motor[MOTOR_BELT]=50;
+	motor[MOTOR_BELT]=5*MOTOR_BELT_SPEED;
 	nMotorEncoder[MOTOR_BELT]=0;
 	while(nMotorEncoder[MOTOR_BELT] < (int)(16.65*WIDTH*SWEEP_CONVERSION + 0.5))
 	{}
@@ -284,12 +299,15 @@ void goFullyLeft(){
 /* We need to have these functions below because we can't pass 2D arrays
 as paramters in RobotC. Otherwise, we would have passed (int digit [9][5],
 int libraryMatrix[9][5]) and compared it by reference.
+
+Each function counts the number of dissimilarities between a scanned section
+of a matrix, and a predefined array - "library matrix"
 */
 int compareMatrix1(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit1[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit1[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -299,9 +317,9 @@ int compareMatrix1(){
 // ============================ COMPARE MATRIX 2 =============================
 int compareMatrix2(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit2[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit2[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -311,9 +329,9 @@ int compareMatrix2(){
 // ============================ COMPARE MATRIX 3 =============================
 int compareMatrix3(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit3[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit3[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -323,9 +341,9 @@ int compareMatrix3(){
 // ============================ COMPARE MATRIX 4 =============================
 int compareMatrix4(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit4[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit4[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -335,9 +353,9 @@ int compareMatrix4(){
 // ============================ COMPARE MATRIX 5 =============================
 int compareMatrix5(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit5[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit5[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -347,9 +365,9 @@ int compareMatrix5(){
 // ============================ COMPARE MATRIX 6 =============================
 int compareMatrix6(){
 	int errorCount=0;
-	for(int i=0; i<9; i++){
-		for(int j=0; j<5; j++){
-			if(Digit6[i][j] != libraryMatrix[i][j]){
+	for(int rowIndex=0; rowIndex<9; rowIndex++){
+		for(int colIndex=0; colIndex<5; colIndex++){
+			if(Digit6[rowIndex][colIndex] != libraryMatrix[rowIndex][colIndex]){
 				errorCount++;
 			}
 		}
@@ -358,36 +376,40 @@ int compareMatrix6(){
 }
 // ============================ OUTPUT MATRIX ===============================
 void output2By3Matrix(){
-	int lineNum =0;
-	for (int i=0;i<2; i++){
-		displayBigTextLine(lineNum, "   %d  %d  | %d  ", matrix[i][0],
-							matrix[i][1], matrix[i][2]);
+	int lineNum = 0;
+	for (int row = 0; row < ROW_NUM_FINAL; row++){
+		displayBigTextLine(lineNum, "   %d  %d  | %d  ", matrix[row][0],
+							matrix[row][1], matrix[row][2]);
 		lineNum+=3;
 	}
 }
 // ============================ WRITING FUNCTIONS =============================
 
 // ============================ MOVE ROBOT DOWN ==============================
+// this function is to move the robot up/down a specified distance, when writing
+// numbers on the white board as we have to move down a certain distance while
+// the marker is placed down on the whiteboard.
 void moveRobotDown(int distanceDown, bool down){
 	nMotorEncoder[MOTOR_AXIAL] = 0;
 	if(down){
-		motor[MOTOR_AXIAL] = -20;
+		motor[MOTOR_AXIAL] = -2*AXIAL_MOTOR_SPEED;
 		// moves up for specified distance
 		while(nMotorEncoder[MOTOR_AXIAL]/AXIAL_CONVERSION >=distanceDown*(-1)){}
 		motor[MOTOR_AXIAL] = 0;
 	}
 		// moving up
 	else{
-		motor[MOTOR_AXIAL] = 20;
+		motor[MOTOR_AXIAL] = 2*AXIAL_MOTOR_SPEED;
 		// moves down for specified distance
 		while(nMotorEncoder[MOTOR_AXIAL]/AXIAL_CONVERSION <= distanceDown){}
 		motor[MOTOR_AXIAL] = 0;
 	}
 }
 // ============================ MOVE NEXT ROW ================================
+// function to move to the left end of the track, and then down to the next row
 void moveNextRow(){
 	nMotorEncoder[MOTOR_BELT] = 0;
-	motor[MOTOR_BELT] = 30;
+	motor[MOTOR_BELT] = 3*AXIAL_MOTOR_SPEED;
 	// move to the left most column
 	while(nMotorEncoder[MOTOR_BELT] <=SWEEP_CONVERSION*15){}
 
@@ -396,24 +418,28 @@ void moveNextRow(){
 	moveRobotDown(13,true);
 }
 // =============================== MOVE RIGHT =================================
+// function to move right, a given distance to be able to write a number.
 void moveRight(int dist)
 {
 	motor[MOTOR_BELT] = 0;
 	nMotorEncoder [MOTOR_BELT] = 0;
-	motor[MOTOR_BELT] = -10;
+	motor[MOTOR_BELT] = -MOTOR_BELT_SPEED;
 	while (nMotorEncoder[MOTOR_BELT]/SWEEP_CONVERSION >= (-1)*dist){}
 	motor[MOTOR_BELT] = 0;
 }
 // =============================== MOVE LEFT =================================
+// similar to the move right function
 void moveLeft(int dist)
 {
 	motor[MOTOR_BELT] = 0;
 	nMotorEncoder [MOTOR_BELT] = 0;
-	motor[MOTOR_BELT] = 10;
+	motor[MOTOR_BELT] = MOTOR_BELT_SPEED;;
 	while(nMotorEncoder[MOTOR_BELT] < dist*SWEEP_CONVERSION){}
 	motor[MOTOR_BELT] = 0;
 }
 // =============================== PLACE PEN =================================
+// function to either place the marker on the whiteboard, or pick up the marker
+// off the whiteboard, depending on the inputted booleann.
 void placePen (bool setPen)
 {
 	motor[MOTOR_PEN] = 0;
@@ -435,6 +461,7 @@ void placePen (bool setPen)
 
 	motor[MOTOR_PEN] = 0;
 }
+// The following are commands to write a given number, using the above functions
 // =============================== WRITE ZERO ================================
 void writeZero()
 {
@@ -448,7 +475,6 @@ void writeZero()
 // =============================== WRITE ONE ================================
 void writeOne()
 {
-
 	moveRight(1.5);
 	placePen(1);
 	moveRobotDown(8, true);
@@ -607,10 +633,12 @@ void writeNumber(int value)
 	}
 }
 // ============================ WRITE SOLVED MATRIX ===========================
+// function to loop through the solved matrix, and write the solution
+// on the whiteboard in the correct location
 void writeSolvedMatrix(){
-	for (int index = 0; index < 2; index++)
+	for (int index = 0; index < ROW_NUM_FINAL; index++)
 	{
-		for (int count = 0; count < 3; count++)
+		for (int count = 0; count < COL_NUM_FINAL; count++)
 		{
 			writeNumber(matrix[index][count]);
 			moveRight(5);
@@ -620,34 +648,47 @@ void writeSolvedMatrix(){
 }
 
 // ========================== RREF FUNCTIONS ==================================
+/*
+For the following functions:
+ERO refers to "Elementry row operation", as defined in Linear Algebra
+We are only able to solve 2x3 matricies, that have non-fractional intermediary 
+steps. For example, we are not (and did not expect) to be able to an ERO like
+R2 - 1/3 * R1 -> R2.
 
+*/
 // =========================== SUBTRACT 2 ROWS ===============================
+// This is function to subtract multiples of one row, from another.
+// Ex. Row2 = Row2-3*Row1
 void subtract2rows(int multiplier, int rowToFix, int rowToUse){
 	// rowToFix is the row we are doing the ERO on, rowToUse is the row we are
 	// using to fix the rowToFix
-	for (int j =0; j<3;j++){ // jth column. is this okay?
-		matrix[rowToFix][j] = matrix[rowToFix][j] -
-								multiplier*matrix[rowToUse][j];
+	for (int colIndex = 0; colIndex< COL_NUM_FINAL; colIndex++){
+		matrix[rowToFix][colIndex] = matrix[rowToFix][colIndex] -
+								multiplier*matrix[rowToUse][colIndex];
 	}
 }
 // ============================== SWAP 2 ROWS ================================
-// even more useful function in R3
+// This is a function to swap all entries in 2 rows.
 void swap2Rows(int row1, int row2){
-	for (int j =0; j<3;j++){
-		int temp = matrix[row1][j];
-		matrix[row1][j] = matrix[row2][j];
-		matrix[row2][j] = temp;
+	for (int colIndex = 0; colIndex< COL_NUM_FINAL; colIndex++){
+		int temp = matrix[row1][colIndex];
+		matrix[row1][colIndex] = matrix[row2][colIndex];
+		matrix[row2][colIndex] = temp;
 	}
 }
 // =========================== REDUCE SINGLE ROW ============================
+// This is a function to reduce 1 single row, by dividing each entry in the row
+// by a scalar value, which is determined by the 1st entry in the row.
 void reduceSingleRow(int row, int column){
 	int multiplier = matrix[row][column];
-	for (int j =0; j<3;j++){
-		matrix[row][j] = matrix[row][j]/multiplier; // since whole number unique
-		//solution
+	for (int colIndex = 0; colIndex< COL_NUM_FINAL; colIndex++){
+		matrix[row][colIndex] = matrix[row][colIndex]/multiplier; 
+		// since whole number unique solution
 	}
 }
 // =========================== REDUCE FIRST ENTRIES ==========================
+// This is a function that makes a decision about which of the above functions
+// to call based on the current state of the 2 by 3 matrix.
 void reduceFirstEntries(){
 	// if this is called, it means it is not of the form [1
 	//													  0] in the first column
@@ -662,20 +703,22 @@ void reduceFirstEntries(){
 			subtract2rows(1,0,1);// subtract small (second) row from big
 								 //(first) row
 		}
-		else{ // some random stuff
+		else{
 			//row 1 = row 1 -2row2
 			subtract2rows(matrix[0][0]/matrix[1][0], 0, 1);
 		}
 	}
 	else if (matrix[0][0]<matrix[1][0]){ // if second row's colomun 1
 										// entries are bigger
-		swap2Rows(0,1); // easy way to deal with it
+		swap2Rows(0,1); // easy way to fix that
 	}
 	else{ // if equal
 		subtract2rows(1,1,0);
 	}
 }
 // =========================== REDUCE SECOND ENTRIES ==========================
+// Similar to the reduceFirstEntries funciton, but this is only called when 
+// the first column has been reduced.
 void reduceSecondEntries(){
 	//if this is called, it means it is not of the form [1
 	//													 0] in the second column
@@ -685,17 +728,19 @@ void reduceSecondEntries(){
 	if (matrix[1][1]!=1){
 		reduceSingleRow(1,1); // reduce second row using 2nd entry in 2nd row
 	}
-	else{
+	else{ // if second row's 2nd entry is reduced to 1, then we subtract
+		  // multiples of the second row from the first row.
 		subtract2rows(matrix[0][1],0,1);
 	}
 }
 // ============================= COMPUTE MATRIX ==============================
+// This is a function to carry the 2x3 matrix to RREF
 void computeMatrix(){
 	while ( (matrix[0][0]!=1||matrix[1][0]!=0||matrix[0][1]!=0||matrix[1][1]!=1)
-			// while not in rref
+			// while not in RREF
 			&& !(matrix[0][0]==0 && matrix[0][1]==0)
 			// and while not a zero row in the top row
-			&& !(matrix[1][0]==0 && matrix[1][1]==0) ){
+			&& !(matrix[1][0]==0 && matrix[1][1]==0) ){ // to avoid divide by 0
 			// and while not a zero row in the bottom row
 		if (matrix[0][0]!=1 || matrix[1][0]!=0){
 			reduceFirstEntries();
@@ -711,30 +756,36 @@ void computeMatrix(){
 		/* if the rref of the matrix has any row of zeros where the augmented
 		   portion (after the line | ) is non-zero, ex. is something like
 		   [0 0 | 1] in a row
-		   then the system is consistent and has no solution
+		   then the system is inconsistent and has no solution
 		*/
 		setSoundVolume(100);
 		playSoundFile("Uh-oh"); // Starts playing a soundfile, on EV3
 		sleep(3000);
+		eraseDisplay();
 		displayBigTextLine(1,"Matrix is");
 		displayBigTextLine(3," inconsistent.");
 		wait1Msec(2000)
+		eraseDisplay();
 	}// otherwise, there is at least one solution
-	output2By3Matrix();
+	output2By3Matrix(); 
 	wait1Msec(4000);
 }
 // ============================= SCAN MATRIX ==============================
+// Function to scan in the printed matrix, and place the current scan value
+// in the correct "sectioned" array, depending on the current position of the
+// sensor on the track/whiteboard
 void scanMatrix(){
 	bool isBlack = false;
 	for(int row=0; row < 20; row++){
 		for(int col=0; col <15; col++){
 			// determine black or white
-			if(SensorValue[COLOR_SENS] < 25){
+			if(SensorValue[COLOR_SENSOR] < COLOR_THRESHOLD){
 				isBlack = true;
 			}
 			else{
 				isBlack = false;
 			}
+			// store value
 			if (row<9){
 				if(col<5){
 					Digit1[row][col]= isBlack;
@@ -760,9 +811,9 @@ void scanMatrix(){
 			nextPixelRight(); // move colour sensor right on track to
 			// the next cell
 			wait1Msec(50);
-			// the 14th column doesn't scan unless the lines below exists
+			// scan again if last column
 			if (col == 14){
-				if(SensorValue[COLOR_SENS] <25){
+				if(SensorValue[COLOR_SENSOR] < COLOR_THRESHOLD){
 					 isBlack = 1;
 				}
 				else{
@@ -783,6 +834,8 @@ void scanMatrix(){
 	}
 }
 // ============================= RECOGNIZE DIGITS ==============================
+// Function to determine the numerical value from the sectioned array, by
+// comparing to our predefined library
 void recognizeDigits(){
 	string fileName="Numbers.txt";
 	// our text file for the predefined library of scans is "Numbers.txt"
@@ -791,11 +844,11 @@ void recognizeDigits(){
 	bool fileOkay=openReadPC(fin,fileName);
 	int value = 0;
 	for(int number=0; number<10; number++){
-		// populates an array using text file
-		for(int i=0; i<9; i++){
-			for(int j=0; j<5; j++){
+		for(int row=0; row<9; row++){
+			for(int col=0; col<5; col++){
 				readIntPC(fin, value);
-				libraryMatrix[i][j] = value;
+				// populates an array using text file
+				libraryMatrix[row][col] = value;
 			}
 		}
 		// fill a list with number of errors between each matrix
@@ -808,7 +861,10 @@ void recognizeDigits(){
 		errorList6[number] = compareMatrix6();
 	}
 	// digit estimation
-	int smallestError[6] = {45,45,45,45,45,45};
+	// The digit that is the most similar, is estimated to be the value of the 
+	// scanned digit
+	int smallestError[6] = {45,45,45,45,45,45}; // 45 is the max number of
+	// errors: 9x5=45
 	for(int index=0; index<9; index++){
 		if(errorList1[index] < smallestError[0]){
 			smallestError[0] = errorList1[index];
@@ -835,62 +891,68 @@ void recognizeDigits(){
 			matrix[1][2] = index;
 		}
 	}
-	// === END DIGIT RECOGNITION
 }
 // ======================== OUTPUT RAW SCAN FUNCTIONS =========================
 // Similar to the reason we needed seperate compareMatrix functions,
 // we needed multiple outputMatrix functions
-// these functions were only to debug and test program
+// these functions were only to debug and test program, by outputting the raw
+// data to the screen of the EV3.
 void outputMatrix1(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit1[i][0],
-						Digit1[i][1], Digit1[i][2], Digit1[i][3], Digit1[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", 
+						Digit1[rowNum][0], Digit1[rowNum][1], Digit1[rowNum][2],
+						Digit1[rowNum][3], Digit1[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
 }
 void outputMatrix2(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit2[i][0],
-						Digit2[i][1], Digit2[i][2], Digit2[i][3], Digit2[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ",
+						Digit2[rowNum][0], Digit2[rowNum][1], Digit2[rowNum][2],
+						Digit2[rowNum][3], Digit2[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
 }
 void outputMatrix3(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit3[i][0],
-						Digit3[i][1], Digit3[i][2], Digit3[i][3], Digit3[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ",
+						Digit3[rowNum][0], Digit3[rowNum][1], Digit3[rowNum][2],
+						Digit3[rowNum][3], Digit3[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
 }
 void outputMatrix4(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit4[i][0],
-						Digit4[i][1], Digit4[i][2], Digit4[i][3], Digit4[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ",
+						Digit4[rowNum][0], Digit4[rowNum][1], Digit4[rowNum][2],
+						Digit4[rowNum][3], Digit4[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
 }
 void outputMatrix5(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit5[i][0],
-						Digit5[i][1], Digit5[i][2], Digit5[i][3], Digit5[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", 
+						Digit5[rowNum][0], Digit5[rowNum][1], Digit5[rowNum][2],
+						Digit5[rowNum][3], Digit5[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
 }
 void outputMatrix6(){
 	int lineNum =0;
-	for (int i=0;i<ROW_NUM; i++){
-		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ", Digit6[i][0],
-						Digit6[i][1], Digit6[i][2], Digit6[i][3], Digit6[i][4]);
+	for (int rowNum=0;rowNum<ROW_NUM; rowNum++){
+		displayTextLine(lineNum, "   %d  %d  %d  %d  %d  %d  ",
+						Digit6[rowNum][0], Digit6[rowNum][1], Digit6[rowNum][2],
+						Digit6[rowNum][3], Digit6[rowNum][4]);
 		lineNum++;
 	}
 	wait1Msec(5000);
