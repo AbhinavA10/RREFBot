@@ -1,3 +1,8 @@
+// Program for testing Hamming Distance approach
+
+// Hamming Distance: Given two vectors `u,v` define the hamming distance 
+// between u and v ,d(u,v), to be the number of places where u and v differ
+
 #include "PC_FileIO.c"
 
 string fileName="Numbers.txt";
